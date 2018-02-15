@@ -67,8 +67,13 @@ Documentation by example can be found in the [_sim_] directory
 ## Installation
 ---------------
 
-just type "make master"
-which compiles the simulator and places an executable in ~/bin/
+just type 
+
+```
+make master
+```
+
+which compiles the simulator and places an executable in *~/bin/*
 
 
 ## Usage
