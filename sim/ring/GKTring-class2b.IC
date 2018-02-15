@@ -1,0 +1,5 @@
+% relevant for choice_BC=3 or 4
+%x	rho(1/m)		Q (1/h)(only choice_BC=4)
+5800	0.04		200
+6000	0.040005	200	
+6200	0.04		200

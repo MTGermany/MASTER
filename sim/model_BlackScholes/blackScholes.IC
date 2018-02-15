@@ -1,0 +1,11 @@
+%Call with strike 100 and xmin on left boundary = 0/1000 (DM)
+% x = (xmin + i*dx) Eur
+% y = (t-t0) Jahre 
+0	     0
+100	     100
+1000	     100
+
+
+
+
+

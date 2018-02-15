@@ -1,0 +1,6 @@
+#!/bin/sh
+
+MASTER_kalib
+gnuplot kalib_objFun.gnu
+xv kalib_objFun.png &
+ 

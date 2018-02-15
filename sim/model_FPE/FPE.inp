@@ -1,0 +1,41 @@
+%**************************************************************************
+% Fokker-Planck equation dP/dt=-d/dx(AP)+1/2 d^2/dx^2(B P)
+%***************************************************************************
+% (following not relevant parameters for FPE)
+5		B=sig^2  = v0   = diffusion coefficient B
+1.		A  = Tr  = drift coefficient A
+0.       	xmin = tau0 = value at left boundary (a.u.)
+0.008     	A0       = Dimensionless prefactor of accel. fluctuations
+1000     	rhomax   = just input high values (no intp needed)
+1.2		antic_factor (or b=bmax/safety_fac in the mac-IDM)
+0.02            dA       = amplitude of A variation
+% simulation  conditions 
+0.030           rhoinit  = IC if choice_init=2 (a.u.)
+0.01     	ampl_init= Ampl. of dQ(1/s)(choice_init=0) or rho(1/m)(otherw) 
+500000.		w_init   = width of (the envelope of) the perturbation (m)
+600.      	wavel_init = wavelength of the pert if choice_init==0
+3        	choice_init= {Q periodic*Gauss, shock, KK pert, from file}
+0.40    	center_init= rel. center of init. perturbation (xmax)
+4	   	choice_BC={p,Drho-f,Drho-N,Drho-Drho,f-f,DrQ-DrQ,NN,DrQ-N}
+% use NN if call or put (BC recalculated), f-f if free, Drho-Drho for stopLoss
+6               choice_rmp = {no ramps, one ramps in .rmp, ramps in .rmp*}
+% Numerical parameters
+5.001 	   	tmax     = Total simulation time (a.u.)
+0.05     	dt       = Discretization in t (a.u.)
+100.		xmax     = Max. value - Min value xmin (a.u.)
+0.5		dx       = Discretization in x (a.u.)
+000. 	   	D1       = num diffusion (not used for FPE)
+000. 	   	D2       = num diffusion (not used for FPE)
+% control of the output
+0.2	    	dtout    = Discretization in t for saving the results 
+0.5	 	dxout    = Discretization in x for saving the results
+1               choice_outp = {only equil+3D, plus spacetime slices, plus lin prop}
+% Choice of numerical methods and model variants 
+50		choice_model= {GKT,GKThighDens, 2=KK,5=BlackS,50=FPE,51=FPEi}
+0		choice_method = {McCormack, Upwind}
+2       	choice_A = {A=A0, A0+dA*inverse Gaussian, A0+dA*tanh}
+% flags for tests
+0		test_timestep
+0		test_shift
+% Length of ramp
+0             dx_rmp

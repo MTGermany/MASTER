@@ -1,0 +1,3 @@
+1000.000000	200.   % better initial cond.
+15000.000000	56.7    % real ramp
+16000           200     % to generate perturbation (default: 1000 downstream)

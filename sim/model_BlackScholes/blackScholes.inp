@@ -1,0 +1,43 @@
+%**************************************************************************
+% Black-Scholes equation; t = years/60 so that output in years
+%***************************************************************************
+% Model parameters
+0.2		sig  = v0   = Volatility (year^{-1/2})
+0.02      	r0   = Tr   = risk-free interest rate (year^-1)
+0.       	xmin = tau0 = stock price on left boundary (a.u.)
+%                             (max stockprice=xmin+xmax)
+%
+0.008     	A0       = Dimensionless prefactor of accel. fluctuations
+1000     	rhomax   = just input high values (no intp needed)
+1.2		antic_factor (or b=bmax/safety_fac in the mac-IDM)
+0.02            dA       = amplitude of A variation
+% simulation  conditions 
+0.030           rhoinit  = IC if choice_init=2 (a.u.)
+0.01     	ampl_init= Ampl. of dQ(1/s)(choice_init=0) or rho(1/m)(otherw) 
+500000.		w_init   = width of (the envelope of) the perturbation (m)
+600.      	wavel_init = wavelength of the pert if choice_init==0
+3        	choice_init= {Q periodic*Gauss, shock, KK pert, from file}
+0.40    	center_init= rel. center of init. perturbation (xmax)
+4	   	choice_BC={p,Drho-f,Drho-N,Drho-Drho,f-f,DrQ-DrQ,NN,DrQ-N}
+% use NN if call or put (BC recalculated), f-f if free, Drho-Drho for stopLoss
+6               choice_rmp = {no ramps, one ramps in .rmp, ramps in .rmp*}
+% Numerical parameters
+2.01 	   	tmax     = Total simulation time (year)
+0.0002     	dt       = Discretization in t (year)
+300.		xmax     = Max. stock price - Min stock price xmin (a.u.)
+2		dx       = Discretization in x (a.u.)
+000. 	   	D1       = Numerical viscosity of the rho equation ((a.u.)^2/s)
+000. 	   	D2       = Numerical viscosity of the v equation ((a.u.)^2/s)
+% control of the output
+0.05	    	dtout    = Discretization in t for saving the results 
+4	 	dxout    = Discretization in x for saving the results
+1               choice_outp = {only equil+3D, plus spacetime slices, plus lin prop}
+% Choice of numerical methods and model variants 
+5		choice_model= {GKT,GKT high densK, KK, macIDM,macBando,BlackS}
+0		choice_method = {McCormack, Upwind}
+2       	choice_A = {A=A0, A0+dA*inverse Gaussian, A0+dA*tanh}
+% flags for tests
+0		test_timestep
+0		test_shift
+% Length of ramp
+0             dx_rmp

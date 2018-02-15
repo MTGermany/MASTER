@@ -1,0 +1,42 @@
+Hello Sheng Peng,
+
+please find attached a code fragment providing the core calcualtions
+of the GKT model.
+
+The function 
+void calc_rhsGKT (...) calculates, for one time step, the right-hand
+side fields of the GKT equations in the flow-conservative form 
+
+              ________________________________________________
+              |  d_t rho(x,t)  = -d_x F1 + S1 (ramp flows)    |
+              |  d_t Q(x,t)    = -d_x F2 + S2                 |
+              ------------------------------------------------
+
+(see comments in the program)
+
+The file calc_rhsGKT.cc contains also some helper functions, such as
+a method to add ramp terms to the sources (add_rmpGKT), a fast
+interpolation routine, intpGKT(..), and  the shifting routine
+shift_in_xGKT(..) calculating the nonlocal terms of the GKT model.
+
+Since I cannot give you the complete program (it is copyrighted) you
+have to provide the framework by yourself such as 
+
+* the model parameters
+(in the program they are expected partly as x-dependent fields, e.g.,
+v0_loc[i] denotes the local desired velocity at position i)
+
+* the initialization
+
+* the existence and location of ramps (for systems without ramps you
+can drop the add_rmpGKT method)
+
+* the kind of boundary conditions (choice_BC=0 means periodic boundary
+conditions), and their implementation
+
+* the update routine (for the GKT, chose the upwind method by setting
+the parameter "downwind_diff"=false in the method calc_rhsGKT)
+
+yours,
+
+Martin Treiber

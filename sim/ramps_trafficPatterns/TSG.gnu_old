@@ -1,0 +1,209 @@
+
+set style line 1 lt 7 lw 6 #schwarz
+set style line 2 lt 3 lw 6 pt 12 #blau
+set style line 3 lt 4 lw 6 #lila
+set style line 4 lt 1 lw 6 pt 10 #rot
+set style line 5 lt 6 lw 6 #gelb  (screen: tausche mit ls 1=orange-ocker auf screen)
+set style line 6 lt 2 lw 6 pt 14 ps 0.6 #gruen
+set style line 7 lt 7 lw 6 #schwarz
+set style line 8 lt 8 lw 6 #blassrot
+
+set style line 11 lt 7 lw 1 #schwarz
+set style line 12 lt 3 lw 1 pt 12 #blau
+set style line 13 lt 4 lw 1 #lila
+set style line 14 lt 1 lw 1 #lila
+
+
+set term post eps enhanced color solid "Helvetica" 30
+
+tmin=20    #minutes
+tmax=120  #minutes
+xmin=5   # km
+xmax=18 #km
+set view 12, 60
+set size 2,2
+
+##################################################
+set out "TSG.rho3d.eps"
+print "plotting TSG.rho3d.eps ..."
+
+
+
+set xlabel "x (km)"
+set xrange [xmin:xmax]
+
+set ylabel "t (min)"
+set yrange [tmin:]
+set ytics 20
+
+#set title "{/Symbol r}(vehicles/km/lane)" 
+#set zlabel "{/Symbol r}(vehicles/km/lane)" 0,2
+set zlabel "V (km/h)" 0,2
+set ztics 50
+set zrange [:] reverse
+
+
+set cntrparam levels discrete 10,20,40 # freely set lines
+unset clabel  # dann lauter gleiche Kontourlinien; 
+                     # Farbe und Typ mit "w l ls" beim splot-Kommando
+#set palette defined ( 0 "#2200aa", 0.2  "blue", 0.4 "green",0.5 "yellow", 0.7 "orange", 0.9 "red", 1 "#cc00ff")
+set palette defined (0 "#cc00ff", 0.15 "red",  0.25 "orange", 0.35 "yellow",0.5 "green",0.7  "blue", 1 "#2200aa")
+
+#set cbrange [0:120]  #[min:max] of color-coded  range (default zrange)
+
+set pm3d                     # color coded 3d surface
+#set pm3d     map                # color coded 3d surface
+#set contour surface      # Aktiviert Kontourlinien auf 3D-Flaeche
+unset surface      # pm3d off: kein Gitternetz gemacht
+                            # pm3d on: Schnelles Plotten mit/ohne Netz
+                            # (je nach pm3d Einstellung) mit Artefakten
+
+
+splot "TSG.dat" u 1:($2):3 w l 2
+
+##################################################
+set out "TSG.v3d.eps"
+#set title "V (km/h)"
+#set zlabel "V (km/h)"
+
+print "plotting TSG.v3d.eps ..."
+
+splot "TSG.dat" u 1:($2):4 w l 2
+
+##################################################
+#set out "TSG.Q3d.eps"
+#set zrange [1500:]
+#set zlabel "Flow (veh/h/lane)" 0,2
+#splot "TSG.dat" u ($1-15):2:5 w l 2
+
+##################################################
+
+####################################
+set term post eps enhanced color solid "Helvetica" 28
+set out "TSG_fund.eps"
+print "plotting TSG_fund.eps ..."
+set size 1,1
+set xlabel "{/Symbol r}(vehicles/km)" 0,0.5
+set xrange [0:130]
+set ylabel "Q (vehicles/h)" 1,0
+set auto y
+set nokey
+set nogrid
+
+rhoc1=20.
+rhoc2=24.
+rhocconv=39.
+rhoc3=50.
+rhoc4=55.
+
+Qc1=2000.
+Qc2=2150.
+Qcconv=1800.
+Qc3=1500.
+Qc4=1420.
+
+set ytics 500
+
+plot[t=0:1]\
+ "TSG.tab" u 1:4 t "" w l ls 1,\
+ rhoc1, t*Qc1 t "Limit {/Symbol r}_{c1}" w l ls 2,\
+ rhoc2, t*Qc2 t "Limit {/Symbol r}_{c2}" w l ls 3,\
+ rhocconv, t*Qcconv t "Limit {/Symbol r}_{conv}" w l lt 0,\
+ rhoc3, t*Qc3 t "Limit {/Symbol r}_{c3}" w l ls 3,\
+ rhoc4, t*Qc4 t "Limit {/Symbol r}_{c4}" w l ls 2
+
+
+quit
+
+#********************************************************
+# Sections x=const ("loop data")
+#********************************************************
+
+set style line 1 lt 3 lw 8
+set style line 2 lt 5 lw 8
+set style line 3 lt 2 lw 8
+set style line 4 lt 6 lw 8
+set style line 5 lt 1 lw 8
+set style line 6 lt 4 lw 8
+set style line 10 lt 0 lw 4
+set style line 11 lt 7 lw 8
+
+set out "TSG.tseriesUpDown.eps"
+
+set auto x
+set xrange [-3:]
+set xlabel "Time (min)"
+set yrange [0:160]
+set ylabel "V (km/h)"
+set key
+
+plot[t=0:1]\
+  "TSG.x12000"  u ($2-60):4 t "10 km upstream  " w l ls 1,\
+  "TSG.x21000" u ($2-60):4 t "1 km upstream   " w l ls 2,\
+  "TSG.x23000" u ($2-60):4 t "1 km downstream " w l ls 3,\
+  "TSG.x25000" u ($2-60):4 t "3 km downstream " w l ls 3,\
+  0, 110*t t "begin/end of obstruction" w l ls 10,\
+  30, 110*t t "" w l ls 10
+
+set out "TSG.tseriesUp.eps"
+plot[t=0:1]\
+  "TSG.x21000" u ($2-60):4 t " 1 km upstream " w l ls 1,\
+  "TSG.x19000"  u ($2-60):4 t " 3 km upstream " w l ls 2,\
+  "TSG.x17000"  u ($2-60):4 t " 5 km upstream " w l ls 3,\
+  "TSG.x12000"  u ($2-60):4 t "10 km upstream " w l ls 5,\
+  0, 110*t t "begin/end of obstruction" w l ls 10,\
+  30, 110*t t "" w l ls 10
+
+set auto y
+set out "TSG.aUp.eps"
+
+plot\
+  "TSG.x12000" u ($2-60):6 t "10 km upstream  " w l ls 1,\
+  "TSG.x21000" u ($2-60):6 t "1 km upstream   " w l ls 2,\
+  "TSG.x23000" u ($2-60):6 t "1 km downstream " w l ls 3,\
+  "TSG.x25000" u ($2-60):6 t "3 km downstream " w l ls 4
+
+set auto y
+set out "tmp.eps"
+
+plot\
+  "TSG.x12000"  u ($2-60):5 t "10 km upstream  " w l ls 1,\
+  "TSG.x21000" u ($2-60):5 t "1 km upstream   " w l ls 2,\
+  "TSG.x23000" u ($2-60):5 t "1 km downstream " w l ls 3,\
+  "TSG.x25000" u ($2-60):5 t "3 km downstream " w l ls 4
+
+#********************************************************
+# Dynamic trajectories in Q-rho space with 
+# equilibrium fundamental diagram (along x=const and t=const)
+#********************************************************
+
+set out "TSG.Qrho.eps"
+
+set style line 1 lt 3 lw 3
+set style line 2 lt 5 lw 3
+set style line 3 lt 2 lw 3
+set style line 4 lt 6 lw 3
+set style line 5 lt 1 lw 3
+set style line 6 lt 4 lw 3
+
+set xlabel "Density (veh/km/h)"
+set ylabel "Flow (veh/h/lane)"
+set key
+
+tmin=40  #min
+rhostart=19
+Qstart=1800
+rho(rhoin,t)=(t>tmin)?rhoin:rhostart
+Q(Qin,t)=(t>tmin)?Qin:Qstart
+
+plot\
+  "TSG.x19000"  u (rho($3,$2)):(Q($5,$2)) t "3 km upstream " w l ls 5,\
+  "TSG.tab"   u 1:4 t "Equilibrium flow"  w l ls 11
+
+
+
+
+
+
+
+

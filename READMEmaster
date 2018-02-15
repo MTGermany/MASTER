@@ -1,0 +1,331 @@
+
+########################################################################
+MASTER
+''Macroscopic Simulation of Traffic to Enable Road Predictions''
+
+Compile, e.g., with
+"cxx  -o master master.cc -lm"      or
+"g++  -o master master.cc -lm"   
+
+run with "master <set_name>" (without extensions)
+
+(c) Martin Treiber, 
+Last Revised Feb 2000
+
+#########################################################################
+
+General: 
+#########
+
+- Simulator for effectively-single-lane macroscopic models
+- various models of following modell class implemented: 
+  nonlinear PDEs for macroscopic
+  density rho(x,t), and the macroscopic velocity v(x,t).
+- nonlocality of the interaction terms is taken into account.
+- open or closed system, various boundary conditions
+- both ramp bottlenecks and flow-conserving bottlenecks implemented
+
+Calling sequence and Structure of input/output
+###############################################
+
+- Each simulation is connected to a certain name <sim_name> of the simulation
+  set specifying the infrastructure and the dynamic data.
+
+- All input and output files of this simulation are of the form
+
+  <sim_name>.<ext>
+
+- Each simulation set has the input file "<simname>.inp" and 
+  possibly other input files for boundary conditions, ramps, etc
+  (see below)
+- input files can be commented with '%'
+- Simulation starts by calling "master <simname>" (without extensions)
+- Output in any case "<simname>.tab" (equilibrium relations as a
+  table), and "<simname>.dat" (data file of the spatiotemporal
+  dynamics); possibly many more output files, see below
+
+The main input file "<setname>.inp"
+#####################################
+
+Model parameters
+----------------
+
+GKT parameters 
+v0,T,tau0,A0,rhomax,antic_factor (=gamma),dA
+(Parameters of other models see below)
+
+Choice of models: choice_model = 
+---------------------------------
+
+0:   GKT model
+1:   GKT with high-density correction (two alterante ways for diffusion!)
+2:   Kerner-Konhaeuser-Lee model (fixed parameters in equil.cc, calc_rhs.cc)
+3:   Macroscopic IDM  (additional parameters in "<sim_name>.IDM")
+4:   Macroscopic Bando (additional parameters in "<sim_name>.bando")
+5:   Black-Scholes as example for parabolic PDE with one field
+6:   GKT with resignation factor (as 1, but high-dens corr begins for
+     lower rho)
+7:   GKT with finite jam distance s0 and free-acc exponent delta neq 1
+
+[Remark for choice_model==1:]
+--------------------------
+Two alterantive ways for implementing diffusion of high-dens corr
+ - in calc_rhs.cc: F1[i] += - actual*( rho[i+diffshift]-rho[i+diffshift-1])/dx
+   F2[] analog with Q: Car conserving, but aggressive on non-fitting
+   Dirichlet BC
+ - in timestep.cc: Adding Dplusmax * high_dens to diffusion constants
+   of advance_dt(..): Looses cars, but slightly more stable 
+   (much more stable for non-corect BC)
+!! look in both files for "Dplusmax" and comment out one of the defs!!
+
+
+Integration schemes: choice_method =
+------------------------------------
+0:   Mc-Cormack     
+1:   Upwind
+
+     Explicit finite-difference methods,
+     of first (Upwind), or second (McCormack)
+     consistency order on a fixed grid with fixed time steps. 
+     Conservation of the vehicle numbers in the case of periodic
+     BC and no ramps is automatically satisfied by using the
+     flux representations of the traffic equations, i.e., 
+     dynamical fields are rho (density), and Q=rho*v (traffic flow) 
+     instead of the velocity.
+
+     Other schemes has been tested: 
+     Lax-Friedrichs: First-order; prohibitively much numerical diffusion
+     Lax-Wendroff: Not much difference to McCormack (equivalent
+                   in linear case)
+
+Initial conditions: choice_init =
+----------------------------------
+
+0:   Q periodic*Gauss
+1:   shock
+2:   KK perturbation
+3:   rho from file, Q=Qe(rho)
+4:   both initial rho and Q from file
+     For more details see the head of "initialize.cc"
+
+     For more details see the head of "initialize.cc"
+
+
+Boundary conditions (BC): choice_BC = 
+-------------------------------------
+0:   Periodic BC corresponding to a ring
+1:   Left: Dirichlet for rho, equilibrium value for Q;
+     Right: Free (linear) BC, i.e., the second derivative is zero.
+2:   Left: Dirichlet for rho, equilibrium value for Q;
+     Right: Homogeneous Neumann BC, i.e., the first derivative is zero
+3:   Left and right:  Dirichlet for rho, equilibrium value for Q
+4:   Left and right: free BC
+5:   Left and right: Dirichlet BC separately for rho and Q
+6:   Left and right: homog. Neumann BC 
+7:   Left: Dirichlet BC separately for rho and Q
+     Right: Homogeneous Neumann BC
+8:   Dynamic BC
+     upstream: Switching between (i) Dirichlet for rho and Q, 
+               (ii) homog. Von-Neumann
+     downstream: using rho 
+9:   as 8, but using Q as downstream BC
+10:  as 8, but using v as downstream BC (often the best choice)
+
+
+The necessary boundary information is in the files 
+"<sim_name>.BCl" and "<sim_name>.BCr",
+for structure of the file sim_names, see below.
+
+files .BCl and .BCr can be generated from real traffic data
+with "data2BC"
+
+
+
+On-and off-ramps
+----------------
+     Several on-ramps and off-ramps with time-dependent flows
+     are available. If the flow is negative, it is an off-ramp,
+     otherwise, an on-ramp.
+
+     The infrastructure data (position and merging length) 
+     is in the file "<sim_name>.rmps";
+     the dynamic data (flow as a function of time) are in the
+     files "<sim_name>.rmp<n>", n=1 ... number of ramps.
+
+Flow-conserving bottlenecks
+---------------------------
+
+Realized by gradients of the parameters;
+currently implemented for the parameter v0 (in "<setname>.v0"),
+and T (in "<setname>.Tr")
+
+
+Output
+------
+
+Three dymensional data of the density rho(x,t), the velocity 
+v(x,t), and the flow Q(x,t) are written in the file "<sim_name>.dat".
+
+Equilibrium relations are written in table form in "<sim_name>.tab"
+
+In addition, if choice_outp=1 (selected in "<sim_name>.inp")
+detectors at various positions can be defined, see below.
+
+#########################################################################
+######################################################################### 
+
+
+The source files of the MASTER package
+######################################
+
+master.cc             // Main program.
+                      // I compile it with "g++ -o master master.cc"
+
+timestep.cc           // Performs one complete time step; controls the
+                         routines in  "pde.cc"and "calc_rhs.cc"
+
+pde.cc                // Contains the integration schemes
+
+calc_rhs.cc           // Calculate the right-hand sides;
+                         contains the models
+
+io.cc                 // In/Output routines
+
+initialize.cc         // Initialize the fields depending on the initial
+                      // conditions
+
+bc.cc                 // Routines to implement boundary conditions           
+
+equil.cc              // Calculates fundamental diagram and other
+                      // tabulated functions (A(rho), B(delta_V))
+
+general.cc, general.h // Routines and definitions for general use  
+
+trucks.cc             //  Deals with time-dependent fraction of trucks
+
+KKL.cc, IDM.cc, macOVM.cc  // Other models
+
+master.h               // Declarations  of global variables and functions
+master.vars            // Definitions  of global variables 
+master.const           // Definitions  of constants
+
+
+The data files 
+##############
+
+Each simulation is connected to a certain name <sim_name> of the simulation
+set specifying the infrastructure and the dynamic data.
+
+All input and output files of this simulation are of the form
+
+<sim_name>.<ext>
+
+Input  file extensions 
+-----------------------
+<ext> = inp:     main (and sometimes only) input file
+
+        BCl,BCr: If Dirichlet boundary conditions are used, BCl contains
+                 the densities at inflow, BCr at outflow.
+                 Each line is of the form  
+                 time(s)        density      flow 
+                 The density can be given in units of veh/m/lane or veh/km/lane;
+                 the flow in units of veh/m/lane or veh/km/lane.
+
+        IC:      Initial densities, if no standard funtions are chosen.
+                 Each line is of the form  "x(m)     density (veh/m/lane)"
+
+        x:       The positions (m) of the detectors
+                 
+        t:       Array of times (s) where output over the simulation
+                 section is produced
+
+        xtmin:   internal coordinates starting at x=t=0 correspond to
+                 physical coordinates x+xmin (m), t+tmin (s). 
+                 If file does not exist: Default xmin=tmin=0
+
+        rmps:    Specifies the ramp infrastructure: positions and
+                 merging lengths
+
+        rmp<n>:  Flow as a function of time for ramp 1 ... ramp n
+                 Each line is of the form  "time(s)  flow (veh/h).
+                 Since MASTER  is an effectively-one lane model,
+                 the flow in reality has to be multiplicated with
+                 the number of lanes.
+
+        rmp:     (only for backward compatibility; now superseded
+                  by .rmps  and .rmp1)
+                 Traffic flow of one on- or off ramp located at xmax/2
+                 Each line is of the form  "time(s)  flow (veh/h).
+
+        A:       Optional change of the form of the
+                 fundamental diagram by the parameters pos_rel and
+                 width_rel of the Fermi function for A, A=A0+dA*Fermi.
+                 (in the case of choice_a=2)
+                 pos_rel is the center position of the
+                 Fermi function and width_rel its  width, both in
+                 units of rhomax
+ 
+        IDM:     Contains the model parameters of the macroscopic
+                 IDM model that are not contained in the GKT model
+                 (and thus read by the .inp file)
+
+        bando:   same for the macroscopic Bando model
+                 (the parameters of the KK model are in the source code)
+
+        v0:      Two columns containing the positions and
+                 corresponding desired velocities. If "master" finds
+                 such a file, it uses it instead of the constant v0
+                 of the .inp file. Useful, if the desired velocity 
+                 should depend on the location (e.g. simulating speed
+                 limits or uphill gradients)
+
+        Tr:      Same for the safety-headway time of the GKT and IDM models
+
+        parTruck: GKT parameters for optional trucks
+        fracTruck: time-dependent fraction of trucks
+
+
+Output  file extensions 
+------------------------
+
+<ext> = dat:     3D output; columns =  x, t, rho, v, Q, acceleration.
+                 One empty line between different times steps
+
+        tab:     Tabulated functions; columns = rho, A, ve, Qe
+                 (Qe(rho) is the static fundamental diagram; ve=Qe/rho)
+
+        x<n>:    2D output at the "induction loop" located at n meters; 
+                 The values of n are given in the first column of "<sim_name>.x"
+                 The files "x<n>" have the same columns as  the .dat file
+
+        t<m>:    2D output of the time slice at m seconds.
+                 The values of m are given in the first column of "<sim_name>.t"
+
+
+
+Auxilliary files 
+#################
+
+~/scripts/cpinp      Copies all input files of one set to another
+
+~/scripts/mvinp      Copies all input files of one set to another
+
+~/scripts/rmdata     Removes all data files but not the sinulation files
+
+cp_package_to        Copies all files relevant for the package MASTER 
+                     to a directory (e.g., export)
+
+gnuplot.inp          Typical gnuplot commands for displaying the
+                         output
+
+perl_change_inp      global changes in all *.inp files with 
+                     perl commands
+
+data2BC.cc           Transfers measured detector data to
+                     .BCl and .BCr files
+
+smooth3dmac.cc       Spatiotemporally smoothes the 3d output in the
+                     .dat files
+
+#############################################################################
+

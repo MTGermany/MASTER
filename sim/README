@@ -1,0 +1,15 @@
+
+(aug06)
+master hat auch Rsignationseffekt => einfach statt choice_model=0 oder
+1 choice_model=6 waehlen!
+
+consBottl: Beispiel offenes System mit flow-conserving bottleneck
+ramps:     offenes System mit Auffahrten als Bottlenecks
+tristab:   Tristabiler Bereich der Kontrollparameter Q_in (in 
+           tristab.BCl) und Q_rmp (in tristab.rmp1)
+varTrucks: Variabler LKW-Anteil fuehrt zu Streuung im
+           Fundamentaldiagramm
+ringRoad:  Die "klassischen" periodischen Randbedingungen
+
+incident:  Response to a (nearly) total road blockage -> Daganzo Jan 2002
+kinDisp:   Demo kinematic dispersion  -> Daganzo Jan 2002

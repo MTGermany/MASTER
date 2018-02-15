@@ -1,0 +1,167 @@
+
+set term post eps enhanced color solid "Helvetica" 30
+
+tmin=20    #minutes
+tmax=60  #minutes
+xmin=10   # km
+xmax=21 #km
+set view 12, 60
+set size 2,2
+
+
+
+
+set cntrparam levels discrete 10,20,40 # freely set lines
+unset clabel  # dann lauter gleiche Kontourlinien; 
+                     # Farbe und Typ mit "w l ls" beim splot-Kommando
+set pm3d                     # color coded 3d surface
+#set pm3d     map                # color coded 3d surface
+#set contour surface      # Aktiviert Kontourlinien auf 3D-Flaeche
+unset surface      # pm3d off: kein Gitternetz gemacht
+                            # pm3d on: Schnelles Plotten mit/ohne Netz
+                            # (je nach pm3d Einstellung) mit Artefakten
+
+
+
+##################################################
+set out "ramps3phase.rho3d.eps"
+print "plotting ramps3phase.rho3d.eps ..."
+
+set xlabel "x (km)"
+set xrange [xmin:xmax]
+
+
+set ylabel "t (min)"
+set yrange [tmin:tmax]
+#set ytics 20
+
+#set title "{/Symbol r}(vehicles/km/lane)" 
+set zlabel "{/Symbol r}(vehicles/km/lane)" 0,2
+set ztics 50
+
+set palette defined ( 0 "#5500aa", 0.08 "#5500aa", 0.16  "blue", 0.24 "green",0.32 "yellow", 0.4 "orange", 0.55 "red", 1 "#cc00ff")
+
+
+splot "ramps3phase.dat" u 1:($2):3 w l 2
+
+##################################################
+set out "ramps3phase.v3d.eps"
+print "plotting ramps3phase.v3d.eps ..."
+
+set zlabel "V (km/h)"
+set zrange [:] reverse
+
+set palette defined (0 "#cc00ff", 0.15 "red",  0.25 "orange", 0.35 "yellow",0.5 "green",0.7  "blue", 1 "#2200aa")
+
+splot "ramps3phase.dat" u 1:($2):4 w l 2
+
+##################################################
+#set out "ramps3phase.Q3d.eps"
+#set zrange [1500:]
+#set zlabel "Flow (veh/h/lane)" 0,2
+#splot "ramps3phase.dat" u ($1-15):2:5 w l 2
+
+##################################################
+set out "ramps3phase.Qe.eps"
+print "plotting ramps3phase.Qe.eps ..."
+set auto x
+set xlabel  "Density (veh/km/lane)"
+set auto y
+set ylabel "Equilibrium flow (veh/h/lane)"
+plot\
+  "ramps3phase.tab"   u 1:4 t "Equilibrium flow"  w l lt 1 lw 3
+
+quit
+
+#********************************************************
+# Sections x=const ("loop data")
+#********************************************************
+
+set style line 1 lt 3 lw 8
+set style line 2 lt 5 lw 8
+set style line 3 lt 2 lw 8
+set style line 4 lt 6 lw 8
+set style line 5 lt 1 lw 8
+set style line 6 lt 4 lw 8
+set style line 10 lt 0 lw 4
+set style line 11 lt 7 lw 8
+
+set out "ramps3phase.tseriesUpDown.eps"
+
+set auto x
+set xrange [-3:]
+set xlabel "Time (min)"
+set yrange [0:160]
+set ylabel "V (km/h)"
+set key
+
+plot[t=0:1]\
+  "ramps3phase.x12000"  u ($2-60):4 t "10 km upstream  " w l ls 1,\
+  "ramps3phase.x21000" u ($2-60):4 t "1 km upstream   " w l ls 2,\
+  "ramps3phase.x23000" u ($2-60):4 t "1 km downstream " w l ls 3,\
+  "ramps3phase.x25000" u ($2-60):4 t "3 km downstream " w l ls 3,\
+  0, 110*t t "begin/end of obstruction" w l ls 10,\
+  30, 110*t t "" w l ls 10
+
+set out "ramps3phase.tseriesUp.eps"
+plot[t=0:1]\
+  "ramps3phase.x21000" u ($2-60):4 t " 1 km upstream " w l ls 1,\
+  "ramps3phase.x19000"  u ($2-60):4 t " 3 km upstream " w l ls 2,\
+  "ramps3phase.x17000"  u ($2-60):4 t " 5 km upstream " w l ls 3,\
+  "ramps3phase.x12000"  u ($2-60):4 t "10 km upstream " w l ls 5,\
+  0, 110*t t "begin/end of obstruction" w l ls 10,\
+  30, 110*t t "" w l ls 10
+
+set auto y
+set out "ramps3phase.aUp.eps"
+
+plot\
+  "ramps3phase.x12000" u ($2-60):6 t "10 km upstream  " w l ls 1,\
+  "ramps3phase.x21000" u ($2-60):6 t "1 km upstream   " w l ls 2,\
+  "ramps3phase.x23000" u ($2-60):6 t "1 km downstream " w l ls 3,\
+  "ramps3phase.x25000" u ($2-60):6 t "3 km downstream " w l ls 4
+
+set auto y
+set out "tmp.eps"
+
+plot\
+  "ramps3phase.x12000"  u ($2-60):5 t "10 km upstream  " w l ls 1,\
+  "ramps3phase.x21000" u ($2-60):5 t "1 km upstream   " w l ls 2,\
+  "ramps3phase.x23000" u ($2-60):5 t "1 km downstream " w l ls 3,\
+  "ramps3phase.x25000" u ($2-60):5 t "3 km downstream " w l ls 4
+
+#********************************************************
+# Dynamic trajectories in Q-rho space with 
+# equilibrium fundamental diagram (along x=const and t=const)
+#********************************************************
+
+set out "ramps3phase.Qrho.eps"
+
+set style line 1 lt 3 lw 3
+set style line 2 lt 5 lw 3
+set style line 3 lt 2 lw 3
+set style line 4 lt 6 lw 3
+set style line 5 lt 1 lw 3
+set style line 6 lt 4 lw 3
+
+set xlabel "Density (veh/km/h)"
+set ylabel "Flow (veh/h/lane)"
+set key
+
+tmin=40  #min
+rhostart=19
+Qstart=1800
+rho(rhoin,t)=(t>tmin)?rhoin:rhostart
+Q(Qin,t)=(t>tmin)?Qin:Qstart
+
+plot\
+  "ramps3phase.x19000"  u (rho($3,$2)):(Q($5,$2)) t "3 km upstream " w l ls 5,\
+  "ramps3phase.tab"   u 1:4 t "Equilibrium flow"  w l ls 11
+
+
+
+
+
+
+
+

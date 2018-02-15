@@ -1,0 +1,22 @@
+%#########################################################
+% Parameters  of the Mac3phase  model
+% 3-phase property switched on if Tmax>Tmin
+% triang FD; OVM-like for beta very small (need>0), FVDM-like for beta>0
+%#########################################################
+%  
+0	 choice_variant          = {triang+GKTnonloc,...}
+%
+0.14	rhomax
+2	 s0            = addtl. introduced distance (m) for veq=0
+33	 v0            = desired vel
+30	 tau           = velocity relaxation time (s)
+1.6	 Tmin         = Min time headway
+1.9	 Tmax         = Max time headway
+0.75	 beta	= prefactor of v*dv/s(rho) term (>0: OVM -> FVDM)
+%
+0.	  A0         (not used here)
+0.	  dA         (not used here)
+0.        pos_rel    (not used here)
+0.        width_rel  (not used here)
+%
+1.1       antic_factor (not used here)

@@ -1,0 +1,15 @@
+% Parameters of the Kerner-Konhaeuser-Lee model 
+% first example: Lee et al, PRL 81,1130, 
+% second example  Hermann-Kerner 97 or 98
+% desired velocity v0 and max. density rhomax from .inp file
+% Courant crit: dt=0.2 marginal OK for mu=166.7
+% very small range of c0: c0=0 -> rho>rhomax for arbitrary mu
+% small mu range: either no stop&go or too many
+%
+15		c0	% sound velocity (m/s)		(15, 11.65)
+166.7  		mu      % dynamic viscosity (m/s)	(166.7, 56.7)
+30		tau	% Time constant (s)		(30, 1)
+100.		lee_E	% Prefactor			(100, -)
+4		lee_theta % Exponent			(4, -)
+38.5		kerner_rhoi % critical density		(-, 38.5)
+0.042		kerner_b    % rel. width of transition	(-, 0.042)

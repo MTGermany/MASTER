@@ -1,0 +1,15 @@
+%############################################################
+% FPE model parameters 
+%     dP/dt=-d/dx(AP)+1/2 d^2/dx^2(B P)
+% and FPE innovation model parameters 
+%     dP/dt=lambda*P (x-erw(x)) + D d^2/dx^2(B P)
+%############################################################
+% geometric properties not contained in .inp project file
+0.       xmin = tau0 = value at left boundary (a.u.)
+% model parameters basic FPE
+4	A = drift coefficient (=0 for innovation-FPE)
+5	B = 2 D= second Kramers-Moyal coefficient
+% model parameters innovation FPE
+1	lambda=imitation rate 
+0	c0   if c0 !=0, then multiplicative Diffusion D=c0*Var(x)
+0	c1   if c1 !=0, then multiplicative Diffusion D=c1*erw(x)

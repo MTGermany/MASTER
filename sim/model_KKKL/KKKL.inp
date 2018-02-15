@@ -1,0 +1,40 @@
+%**************************************************************************
+%Phase diagram for KKKL Model
+%***************************************************************************
+% Model parameters
+33.3		v0       = Desired velocity (m/s) (120km/h / 3.6)
+1.8      	T        = "savety time"
+30.       	tau0     = Velocity relaxation time for zero density (s)
+0.008     	A0       = Dimensionless prefactor of accel. fluctuations
+0.14     	rhomax   = max. "bumper-to-bumper density" (1/m)
+1.2            antic_factor (or b=bmax/safety_fac in the mac-IDM)
+0.02            dA       = amplitude of A variation
+% simulation  conditions 
+0.01            rhoinit   (0.0195; avg: 0.0224)
+0.0     	ampl_init= Ampl. of dQ(1/s)(choice_init=0) or rho(1/m)(otherw) 
+5000000.	w_init   = width of (the envelope of) the perturbation (m)
+600.      	wavel_init = wavelength of the pert if choice_init==0
+2        	choice_init= {Q periodic*Gauss, shock, rho dipole-like (KK)}
+0.40    	center_init= rel. center of init. perturbation (xmax)
+8	   	choice_BC= {p,Drho-f,Drho-N,Drho-Drho,f-f,DrQ-DrQ,NN,DrQ-N,var}
+2               choice_rmp = {no ramps, one ramps in .rmp, ramps in .rmp*}
+% Numerical parameters
+9600. 	   	tmax     = Total simulation time (s)
+0.2     	dt       = Discretization in t (s)
+21000.		xmax     = Length of the simulated section (m)
+100.0		dx       = Discretization in x (m)
+000. 	   	D1       = Numerical viscosity of the rho equation (m^2/s)
+000. 	   	D2       = Numerical viscosity of the v equation (m^2/s)
+% control of the output
+120	    	dtout    = Discretization in t for saving the results 
+400.	 	dxout    = Discretization in x for saving the results
+0               choice_outp = {only equil+3D, plus spacetime slices, plus lin prop}
+% Choice of numerical methods and model variants 
+2		choice_model= {v0,v0 with high-density-corr, KK, mac-IDM}
+0		choice_method = {McCormack, Upwind}
+2       	choice_A = {A=A0, A0+dA*inverse Gaussian, A0+dA*tanh}
+% flags for tests
+0		test_timestep
+0		test_shift
+% Length of ramp
+200             dx_rmp

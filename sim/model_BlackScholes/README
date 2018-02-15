@@ -1,0 +1,2 @@
+master can also be (mis-) used to calculate Black-Scholes option prices for arbitrary 
+price profiles at termination date. The calculation goes backwards

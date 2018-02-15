@@ -1,0 +1,157 @@
+Hello Mead,
+
+basically, your simulation is OK. I have reproduced it with an LWR-like model with a nearly parabola-like fundamental diagram (FD; attached; I misused the GKT model by reparameterizing it  to behave like a LWR model with parabolic FD). The two contour plots from two perspectives show that you can consider the LWR dynamics as that of layers stacked one over the other: If the boundary is continuous (downstream) , the layer boundary propagates with the local wave speed (c=first derivative of the FD). So, the yellow layers (density about 0.75/km) do not move at all. At the upstream boundary, there is a shock and the propagation velocity of this shock is given by the shockwave equation c12=(Q1-Q2)/(rho1-rho2). Thus, at the beginning, it is negative (rho2=150/km>rho1=10/km but Q2=0<Q1) but becomes quickly positive as soon as the first pink layer (maximum density) has dissolved, so Q2 quickly increases above Q1.
+
+The solution is simulated with a very fine grid (5m) and it is very near the exact solution. With coarser grids , you get more numerical diffusion but no qualitative changes, otherwise, so using dx=100m is OK.
+
+I hope this helps you
+
+----------------------------------------------------------
+Dr. Martin Treiber
+         Institute for Transport & Economics, TU Dresden
+	 Chair of Traffic Modelling, Econometrics, and Statistics
+         Falkenbrunnen, Room 123 (two floors up from the entrance!)
+         Würzburger Str. 35, D-01062 Dresden
+         treiber@vwi.tu-dresden.de,
+         www.mtreiber.de
+         phone/fax:     +49 (351) 463 36794 / 36809
+ ---------------------------------------------------------
+
+On 04/15/2016 01:38 PM, Saeed Mohammadian wrote:
+> Dear dr.Treiber
+>
+> Thank you for your advises, I wrote a code for my model with Godunov scheme and it looks numerically stable. I will go over supply and demand method and Cole-Hopf transformation next.
+>
+> Some questions still have occupied my mind about how to INTERPRET the results.
+>
+> in the following figures you see the density profiles for the following initial conditions:
+>
+> umax=25m/s;, L=10000m;, rhojam=150veh/(1000m);, dt=1s;, dx=98m 
+> simulation duration=600s;
+>
+> rho=0.01 for rho<3000
+> rho=0.15 for rho>3000 and rho<5000
+> rho=0.01 for rho>5000
+>
+> ​
+> in my model a 2km fully congested queue dissipates after 10 minutes while in your example a non-saturated queue does not fully disperse even after 20 minutes. and when I draw macroscopic trajectories it show that the vehicles in the middle of queue starts moving after 30s!. Also when I change downstream initial densities, the convection speed of the queue and its dissipating time does not change.
+>
+>
+> Is my density profiles physically plausible? (I don't think so)
+> does the fast dissipation comes from the nature of equilibrium speed density function?
+> is it about Gudonov method?
+> is it because of absence of diffusion terms.
+> and if the real answer of LWR model is something like mine, why have it been widely used for decades with these large errors. I have seen several developed LWR papers in recent papers.
+>
+> I also see a various range of grid sizes for dt and dx in the papers. In some papers (often from mathematicians) I see dx=10m or something
+> you have stated that dx must be microscopically large and macroscopically small and between 50m and 100m. 
+>
+> in my numerical codes when I change the grid size results differ. So with these changes how should I know which Grid size is the proper one.
+>
+>
+> I in advance apologize for too many questions and appreciate it if you could respond.
+>
+>
+>
+>
+>
+> Regards
+> Saeed Mohammadian
+> M.Sc Student 
+> Department of transportation Engineering
+> Ferdowsi University of Mashhad, Iran
+>
+>
+>
+> On Thu, Apr 14, 2016 at 2:03 PM, Martin Treiber <treiber@vwi.tu-dresden.de> wrote:
+>
+>     Hello Saeed,
+>
+>     It depends on the direction of the local  information propagation (sign of the characteristic velocity c) whether to use upwind or downwind method. If the sign of c is positive (left side of the fundamentaldiagram, rho<0.075/m in your case, information flows downstream and the new state should be calculated using local and upstream information, i.e., upwind. Conversely, on the right-hand side of the fundamental diagram (rho>0.075/m), the appropriate method is downstream finite differences (downwind). Thus, you need a method which dynamically decides which method (or a mixture thereof) to take.
+>
+>     For first-order models (as your LWR model), there are two standard methods doing this: (i) Godunov scheme (see the index of my book), and (ii), more specialized, the supply-demand method.
+>
+>     For second-order models, the general method is Mc Cormack which, in fact, uses both upwind and downwind finite differences. If you have nonlocalities, they take care of the downstream part, and an upwind scheme is enough.
+>
+>     In your case, you have a first-order model with linear speed-density relation and I propose either one of the following methods.
+>
+>     (i) (more theoretically oriented): This special model can be transformed into a linear   partial differential equation by the so-called |Cole-Hopf transformation", provided you add a diffusion term (se Eq. (8.55) in the book)
+>
+>     (ii) (probably more what you want) Use the "Supply-Demand Method" (see, again, the index for occurrences in the book)
+>
+>     The scheme in Fig. 8.3 and the simulation in Fig. 8.4 illustrate what you should get:
+>
+>     * At the initial transition to higher densities, you will get a sharp front (so-called "shock wave") regardless of whether the initial conditions contain one, or not. The propagation velocity of the shock wave is given by c_12=(Q1-Q2)/(rho1-rho2) (Eq. (8.9)), i.e., positive in your Simulation 1, and negative in Simulation 2. Furthermore, it should be slightly positive in Simulation 3 (since the flow at rho=0.09 is higher than that at rho=0.02) . Notice that the amplitude of the shock wave does *not* change as long as there are no spatial gradients on either side of the shock.
+>
+>     * if you have, as in your model,  a completely concave fundamental diagram, the downstream front should *always* soften. Thus, you Simulation 3 should qualitativekly look like that of Simulation 2.
+>
+>     I hope this helps,
+>
+>     Martin
+>
+>
+>      
+>
+>     ----------------------------------------------------------
+>     Dr. Martin Treiber
+>              Institute for Transport & Economics, TU Dresden
+>     	 Chair of Traffic Modelling, Econometrics, and Statistics
+>              Falkenbrunnen, Room 123 (two floors up from the entrance!)
+>              Würzburger Str. 35, D-01062 Dresden
+>              treiber@vwi.tu-dresden.de,
+>              www.mtreiber.de
+>              phone/fax:     +49 (351) 463 36794 / 36809
+>      ---------------------------------------------------------
+>
+>     On 04/14/2016 11:26 AM, Saeed Mohammadian wrote:
+>>     Dear Dr Treiber
+>>
+>>     I am writing to enquire about a problem I have encountered in numerically solving almost all traffic flow models I know. as an example I listed the  first-order LWR model with first-order upwind scheme.
+>>
+>>     the model takes v= vmax*(1-rho/rhomax) for macroscopic velocity and
+>>     f=rho*v as the flux.
+>>
+>>     in my model I have set rhomax to be 0.15veh/m so the critical density at which maximum flux occurs and characteristic speed of rho changes sing in its neighborhood is rho=0.075 
+>>
+>>     for the case in which all initial densities are set less than 0.075 or more than it the models exhibit both physically plausible and numerically stable results.
+>>
+>>     for example in below figure initial densities are 
+>>
+>>     0.075 for x<3000
+>>     0.15 for 3000<x<5000
+>>     0.075 for x>5000
+>>
+>>     and since traffic is saturated after 150s density moves backward
+>>
+>>     ​
+>>     in another example initial densities are set to be as follows:
+>>
+>>     0.02 for x<3000
+>>     0.05 for 3000<x<5000
+>>     0.02 for x>5000
+>>     Again since traffic is stable and df/drho is positive density moves forward which is again acceptable. 
+>>
+>>
+>>     But in a controversial case in which initial densities are set as follows
+>>
+>>     0.02 for x<3000
+>>     0.09 for 3000<x<5000 (which is above 0.075)
+>>     0.02 for x>5000
+>>
+>>     in which characteristics speed of rho changes sign in the domain (negative in the middle and positive elsewhere) results are absurd and unstable as follows
+>>
+>>     ​
+>>     I have this problem with Maccormak scheme (upwind and this method are supported in your book Traffic flow dynamics) and the central-upwind (finite volume) scheme as well. besides, in second-order models I encounter the same problem.
+>>
+>>     Does the problem relates to the numerical method I use. is it about the model? or it is about the initial values limitation with the model. 
+>>
+>>     I have become really confused about this and I would appreciate if you could guide me on this.
+>>
+>>
+>>     Regards
+>>     Saeed Mohammadian
+>>     M.Sc Student 
+>>     Department of transportation Engineering
+>>     Ferdowsi University of Mashhad, Iran
+>>
+>

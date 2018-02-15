@@ -1,0 +1,5 @@
+% Parameters of trucks
+25		v0Truck       = Desired velocity (m/s)
+5		TrTruck       = "savety time" (s)
+0.1		rhomaxTruck   = max. density (1/m)
+
