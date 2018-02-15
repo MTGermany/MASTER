@@ -1,0 +1,34 @@
+#ifndef MASTER_CONST
+#define MASTER_CONST
+
+/********************************************************************/
+/**    Constants (in addition to those in "general.h")              */
+/********************************************************************/
+
+
+const int NXMAX    = 5000;        // NXMAX+1 = Max. number of line elements 
+                                  // rhea: 30000 OK, phobos: 5000
+const int NXCUTMAX = 20; 
+const int NTMAX    = 500;        // Max. number of saved timesteps 
+//!!! Some bug for dx<0.2: "segmentation fault" if xmax/dx > NTLOOPMAX
+const int NTLOOPMAX= 1000;        // Max. number of timesteps in x-cuts
+                                  // or BC
+const int NRHO     = 160;         // NRHO+1 = Number of points for the
+                                  // functions depending on rho 
+const double QFACTAB=1.5;         // max. value of rho(Qe) functions 
+                                  // = QFACTAB*Qmax  (>1!)
+const double DVMIN= -3.;
+const double DVMAX = 3.;
+const int NDV      = 160;         // length of the table for factor_dv
+                                  // (increase of the vel interaction by dv)
+const char COMMENTCHAR = '%';
+const char COMMENTCHAR2 = '#';
+const int MAXSTR     = 256;
+
+const int NBC      = 1000;        // max. number of data points for time-
+                                // dependend input functions (BC,rmp..)
+const int NRMPMAX  = 20;        // max. number of (on- or off) ramps
+//double DTLOOP = 30.;       // dt for "loop data" field(t)|x=const
+
+
+#endif //MASTER_CONST
