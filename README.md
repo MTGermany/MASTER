@@ -77,6 +77,7 @@ which compiles the simulator and places an executable in ~/bin/
 The simulations are organized in projects with several input and
 output files (everything is text-based.
 To run a simulation, type 
+
 ```bash
 master projectName
 ```
@@ -86,6 +87,7 @@ For example,
 ```bash
 master ramps/ramps
 ```
+
 will run the project *ramps* in the *ramps/* directory. Notice that
 all output goes to the simulation directory, not the directory
 *master* is called (best to call *master* in the corresponding

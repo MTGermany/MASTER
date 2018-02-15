@@ -11,4 +11,4 @@ rm `find . -name "*.t[0-9]*"`
 # rm all generated image files
 
 rm `find . -name "*.eps"`
-rm `find . -name "*.png"`
+#rm `find . -name "*.png"`

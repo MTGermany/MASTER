@@ -7,5 +7,6 @@ old
 *.eps
 *.o
 *~
+int
 semantic*
 
