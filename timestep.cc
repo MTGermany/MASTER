@@ -42,14 +42,11 @@ void timestep ( int it, double rho[], double Q[], double a[])
 
   // determine, if step should be shown for debugging (sic!)
 
-  if( (test_timestep) && (it >= it_show_min) && (it <= it_show_max) )
-  {
-    show = true; 
-    cout << endl << "in timestep: it= " << it << endl;
+  show=(it<2);
+  if(show){
+    cout <<endl<<endl
+	 << "in timestep debugging: it= " << it << endl;
   }
-  else show = false;
-
-  //show = true; //!!!
 
   // determine truck corrections if truck percentage is time dependent
 
@@ -251,7 +248,8 @@ void timestep ( int it, double rho[], double Q[], double a[])
 
   if (true){
     if ( !(((choice_model==0)||(choice_model==1))||(choice_model==3) 
-	   || (choice_model==7) || (choice_model==8) || (choice_model==9)) ){
+	   || (choice_model==7) || (choice_model==8) || (choice_model==9)
+           ) ){
       // no diffus. for choice_model==8!!
       for(int i=0; i<=nx; i++)
       {
@@ -299,7 +297,6 @@ void timestep ( int it, double rho[], double Q[], double a[])
   for(int i=0; i<=nx; i++)
     a[i] = S2[i]/rho[i];     // rho=0 catched by calc_rhs
 
-  //if (show) control_test("timestep",test_timestep);
 
 } //end timestep
 

@@ -42,8 +42,6 @@ void calc_rhs (int choice_model, bool downwind_diff,
 
 {
 
-  if( show_calc_rhs) printf("in calc_rhs; ");
-
   int    i;
   int    nx   =(int)(xmax/dx);
   double v[NXMAX+1];                         // velocity
@@ -114,25 +112,6 @@ void calc_rhs (int choice_model, bool downwind_diff,
                       / (SQR(denom)*tau0*Arhomax);
       S2[i] = S2free  - S2brake;
     }
-
- 
-
-    // test output
-    if (show_calc_rhs)
-    {
-      printf("\ncalc_rhs: Output \n\n");
-      printf("ix\t  rho\t F2=E     \t v0_loc   \t S2  \n");
-      for (i= ix_show_min; i<= ix_show_max; i++)
-      {
-        printf("%i\t %.6f\t %.6f\t %.6f\t %.6f\n",
-                 i,  
-                 rho[i],     
-                 F2[i],     
-                 v0_loc[i], 
-                 S2[i]);
-      }
-    }
-
   }
 
 
@@ -202,27 +181,8 @@ void calc_rhs (int choice_model, bool downwind_diff,
       else{
 	 F1[i] += - D_corr * ( rho[i] - rho[i-1]) * durch_dx;
          F2[i] += - D_corr * ( Q[i]   - Q[i-1]  ) * durch_dx;
-      }
-      
+      } 
     }
-  
-
-    // test output
-
-    if (show_calc_rhs)
-    {
-      printf("\ncalc_rhs: Output \n\n");
-      printf("ix\t  F2=E     \t v0_loc   \t S2  \n");
-      for (i= ix_show_min; i<= ix_show_max; i++)
-      {
-        printf("%i\t %.6f\t %.6f\t %.6f\n",
-                 i,  
-                 F2[i],     
-                 v0_loc[i], 
-                 S2[i]);
-      }
-    }
-
   }
 
   // ****** end GKT model with high-dens correctionn *****
@@ -237,9 +197,9 @@ void calc_rhs (int choice_model, bool downwind_diff,
   // with s0 and free-acceleration exponent delta (choice_model==7).
   // **************************************************************
 
-  else if  ( ((trucks.varTruck)&&(choice_model == 0))
-          || ((trucks.varTruck)&&(choice_model == 1)) 
-          || (choice_model==6) || (choice_model == 7))
+  else if  ( ((trucks.varTruck)&&(choice_model==0))
+          || ((trucks.varTruck)&&(choice_model==1)) 
+          || (choice_model==6) || (choice_model==7))
   {
 
 
@@ -314,22 +274,6 @@ void calc_rhs (int choice_model, bool downwind_diff,
       }
     }
     
-    // test output
-
-    if (show_calc_rhs)
-    {
-      printf("\ncalc_rhs: Output \n\n");
-      printf("ix\t  F2=E     \t S2  \n");
-      for (i= ix_show_min; i<= ix_show_max; i++)
-      {
-        printf("%i\t %.6f\t %.6f\n",
-                 i,  
-                 F2[i],     
-                 S2[i]);
-      }
-    }
-
-    // return;
   }
 
   // ************* end Variants for GKT model *********************
@@ -347,10 +291,7 @@ void calc_rhs (int choice_model, bool downwind_diff,
 
   else if (choice_model==2)  
   {
-    if( show_calc_rhs) printf("calc_rhs: KK model: ");
-
-    for (i=0; i<=nx; i++)
-    {
+    for (i=0; i<=nx; i++){
       if (rho[i]<TINY_VALUE)  rho[i] = TINY_VALUE;
       if (Q[i]<rho[i]*TINY_VALUE)   Q[i]=rho[i]*TINY_VALUE;
       v[i] = Q[i]/rho[i];
@@ -362,8 +303,9 @@ void calc_rhs (int choice_model, bool downwind_diff,
 
     double flux_diffus[NXMAX+1];  // diffusion comes into the flux F2
     flux_diffus[0]=flux_diffus[nx]=0; // no diffusion at the boundaries 
-    for (i=1; i<=nx-1; i++) 
+    for (i=1; i<=nx-1; i++){
        flux_diffus[i] = - kkl.mu*( v[i+ishift]-v[i+ishift-1])/dx;
+    }
 
     for (i=0; i<=nx; i++)
     {
@@ -376,16 +318,6 @@ void calc_rhs (int choice_model, bool downwind_diff,
       S2[i] = (rho[i]*vw - Q[i]) / kkl.tau; // all interaction in relaxation
     }
 
-    if (show_calc_rhs)
-    {
-      printf("\ncalc_rhs: Output \n\n");
-      printf("ix\t        F2=E \t      \t       flux_diffus\t       S2   \n");
-      for (i= ix_show_min; i<= ix_show_max; i++)
-      {
-        printf("%i\t  %.6f\t    %.6f\t       %.6f\n",
-                 i,  F2[i],     flux_diffus[i],   S2[i] );
-      }
-    }
   } // end KK
 
 
@@ -427,20 +359,6 @@ void calc_rhs (int choice_model, bool downwind_diff,
       S2[i] = rho[i]* a_IDM;
     }   
 
-    // test output
-
-    if (show_calc_rhs)
-    {
-      printf("\ncalc_rhs: Output \n\n");
-      printf("ix\t  F2=E     \t S2  \n");
-      for (i= ix_show_min; i<= ix_show_max; i++)
-      {
-        printf("%i\t %.6f\t %.6f\n",
-                 i,  
-                 F2[i],     
-                 S2[i]);
-      }
-    }
   } // end Mac. IDM model
 
   // *********************************************************************
@@ -448,7 +366,7 @@ void calc_rhs (int choice_model, bool downwind_diff,
   // ********************************************************************
 
 
-  else if (choice_model == 4)
+  else if (choice_model==4)
   {
     double deltave_mca;         // anticipated equilibrium velocity for 
     double rho_shift[NXMAX+1];   // average of rho, rhodelta
@@ -481,21 +399,7 @@ void calc_rhs (int choice_model, bool downwind_diff,
     }
 
 
-    // test output
-
-    if (show_calc_rhs)
-    {
-      printf("\ncalc_rhs: Output \n\n");
-      printf("ix\t  F2=E    \t S2  \n");
-      for (i= ix_show_min; i<= ix_show_max; i++)
-      {
-        printf("%i\t %.6f\t %.6f\n",
-                 i,  
-                 F2[i],     
-                 S2[i]);
-      }
-    }
-
+ 
 
   }
 //End OVM
@@ -531,7 +435,7 @@ void calc_rhs (int choice_model, bool downwind_diff,
      S1 = (sig^2-2 r0) C
 */
 
-  else if (choice_model == 5)
+  else if (choice_model==5)
   {
     if(choice_method==1){
       error(" Black scholes is  parabolic; use McCormack instead of upwind");
@@ -566,34 +470,20 @@ void calc_rhs (int choice_model, bool downwind_diff,
     }
 
 
-    // test output
-
-    //if (true)
-    if (show_calc_rhs)
-    {
-      printf("\ncalc_rhs: Output \n\n");
-      printf("ix\t  rho\t F1 \n");
-      //for (i= ix_show_min; i<= ix_show_max; i++)
-      for (i=nx/2-2; i<nx/2+2; i++)
-      {
-        printf("%i\t %.6f\t %.6f\n", i, rho[i], F1[i]);     
-      }
-    }
-
 
   }//End Black-Scholes
 
   //################# 3 Phase macro model! (mar08)
-  else if (choice_model ==8){
+  else if (choice_model==8){
     mac3phases.calc_rhs(rho,Q,F1,F2,S1,S2,  choice_BC, show_calc_rhs);
   }
 
 //####################### Fokker Planck equation #############
 
   // FPE: dP(x,t)/dt = - d/dx (A P) + 1/2 d^2/dx^2 (B P)
-  // P(x,t)=== rho(x,t)
+  // P(x,t)===rho(x,t)
 
-  else if (choice_model == 50){
+  else if (choice_model==50){
 
     fpe.calc_rhs(rho,F1,S1,downwind_diff);
 
@@ -620,17 +510,6 @@ void calc_rhs (int choice_model, bool downwind_diff,
     
     */
 
-    // test output
-
-    //if (true)
-    if (show_calc_rhs){
-      printf("\ncalc_rhs: Output \n\n");
-      printf("ix\t  rho\t F1 \n");
-      //for (i= ix_show_min; i<= ix_show_max; i++)
-      for (i=nx/2-2; i<nx/2+2; i++){
-        printf("%i\t %.6f\t %.6f\n", i, rho[i], F1[i]);     
-      }
-    }
 
   }
   //End FPE
@@ -638,15 +517,14 @@ void calc_rhs (int choice_model, bool downwind_diff,
 //################ InnovationFokker Planck equation ###################
 
   // Inno-FPE: dP(x,t)/dt = lambda*P(x,t) * (x-erw(x)) + d^2/dx^2 (D P)
-  // P(x,t)=== rho(x,t)
+  // P(x,t)===rho(x,t)
 
-  else if (choice_model == 51){
+  else if (choice_model==51){
     fpe_innov.calc_rhs(rho,F1,S1,downwind_diff);
   }
   //End FPE_innov
 
-  else if (choice_model == 21){
-    if( show_calc_rhs) printf("calc_rhs: VMM model: ");
+  else if (choice_model==21){
 
     for (i=0; i<=nx; i++)
     {
@@ -657,16 +535,48 @@ void calc_rhs (int choice_model, bool downwind_diff,
 
     vmm.calc_rhs(downwind_diff,rho,Q,F1,F2,S1,S2);
   }
-  //End FPE_innov
+  //End VMM
+
+  else if (choice_model==10){
+
+    for (i=0; i<=nx; i++)
+    {
+      if (rho[i]<TINY_VALUE)  rho[i] = TINY_VALUE;
+      if (Q[i]<rho[i]*TINY_VALUE)   Q[i]=rho[i]*TINY_VALUE;
+      v[i] = Q[i]/rho[i];
+    }
+    sgm.calc_rhs(downwind_diff,rho,Q,F1,F2,S1,S2);
+  }
+  //End SGM
 
 
   else error(" Sorry, model for given choice-model not implemented");
 
+  //################################################################
+  // test output
+  //################################################################
 
 
-  /***********************************************************************/
-  /**** calculate sources from on- and off-ramps for all models above   **/
-  /***********************************************************************/
+  if (show_calc_rhs){
+    int ix_show_min=0;
+    int ix_show_max=5;
+    //int ix_show_max=nx;
+    cout <<"\ncalc_rhs: downwind_diff="<<downwind_diff
+	 <<" debug output:"<<endl;
+    printf("ix\t  rho\t Q\t V\t F2    \t S2  \n");
+    for (i= ix_show_min; i<= ix_show_max; i++){
+        printf("%i\t %.4f\t %.4f\t %.2f\t %.2f\t %.4f\n",
+	       i, rho[i], Q[i], Q[i]/rho[i], 
+                 F2[i],     
+                 S2[i]);
+    }
+  }
+
+
+
+  //################################################################
+  // calculate sources from on- and off-ramps for all models above 
+  //################################################################
 
     // only Lee-KK with Gaussian ramp flow density!!
   int gauss = (choice_model==2) ? true : false; 
@@ -689,6 +599,7 @@ void calc_rhs (int choice_model, bool downwind_diff,
       add_rmp (S1, S2, rho, Q, x_rmps[i_rmp],dx_rmps[i_rmp],
                flow_rmps[i_rmp], gauss );
          // flow_rmps[] interpolated from the array Q_rmps[][] in timestep 
+    //cout <<"add_rmp: i_rmp="<<i_rmp<<" flow_rmps[i_rmp]="<<flow_rmps[i_rmp]<<endl;
   }
   if(choice_rmp==3)
     {

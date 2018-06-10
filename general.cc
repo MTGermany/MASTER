@@ -180,10 +180,15 @@ double intp (const double tab[], int n,double x,
   int    i    = (int) ir;
   double rest = ir-i;
   if ((i>=0) && (i<=nloc-1))  intp_value =  (1-rest) * tab[i] + rest*tab[i+1];
-  else if (i==nloc) intp_value = tab[nloc];
-  else {
-    cout << "intp: index i = "<<i<<" (ir="<<ir<<") out of range\n";
-    exit(1);
+  // else if (i==nloc) intp_value = tab[nloc];
+  //else {
+  //  cout << "intp: index i = "<<i<<" (ir="<<ir<<") out of range\n";
+  //  exit(1);
+  //}
+  else{
+    //cerr<<"warning: intp out of range; ir="<<ir<<endl;
+    if (i>=nloc){intp_value = tab[nloc];}
+    else { intp_value = tab[0];}
   }
 
   return(intp_value);

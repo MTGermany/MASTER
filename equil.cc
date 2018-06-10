@@ -38,19 +38,23 @@ void calc_tables(char namepar[])
   (2) Writes rho, A(rho), veq(rho), and Qeq(rho) in file <namepar>.tab
 
 
-   choice_model=0: GKT
-   choice_model=1: reduced desired velocity and additional diffusion
-                   for high densities; NO decrease of interaction).
-   choice_model=2: Kerner-Konhaeuser model
-   choice_model=3: macroscopic IDM
-   choice_model=4: macroscopic OVM (with ve as Bando and max(v0,s/T))
-   choice_model=5: Black-Scholes eq as example for 1-field parab. eq
-   choice_model=6: GKT with resignation factor
-   choice_model=7: GKT with jam distance s0 and free-acc exponent delta=4
-   choice_model=8: Macro-3-Phase model (mar08)
-   choice_model=9: LWR with parabolic FD (apr16)
+   choice_model=0:  GKT
+   choice_model=1:  reduced desired velocity and additional diffusion
+                    for high densities; NO decrease of interaction).
+   choice_model=2:  Kerner-Konhaeuser model
+   choice_model=3:  macroscopic IDM
+   choice_model=4:  macroscopic OVM (with ve as Bando and max(v0,s/T))
+   choice_model=5:  Black-Scholes eq as example for 1-field parab. eq
+   choice_model=6:  GKT with resignation factor
+   choice_model=7:  GKT with jam distance s0 and free-acc exponent delta=4
+   choice_model=8:  Macro-3-Phase model (mar08)
+   choice_model=9:  LWR with parabolic FD (apr16)
+   choice_model=10: SGM (2018) (speed gradient model Jian 2002) (=> ISTTT23)
+   choice_model=21: VMM model (2017)
+   choice_model=50: FPE
+   choice_model=51: FPE innov (see calc_rhs.cc)
 
-   other choices see README_choice_model
+
 
   **********************************************************************/
 
@@ -62,15 +66,22 @@ void calc_tables(char namepar[])
   int ir;
 
   // ########################################################
-  // First rho loop: Calculate v0factab (KKL model) and high_denstab 
+  // First rho loop: Calculate v0factab (KKL model, SGM) and high_denstab 
   // (GKT variants, not used for original GKT model)
   // v0factab in [0,1] lowers desired velocity;
   // high_denstab used EXCLUSIVELY for diffusion; 
   // ########################################################
 
   if(true) cout << "\nin calc_tables of equil: First loop" << endl;
-  for(ir=0; ir<=NRHO; ir++)
-  {
+
+  if(choice_model==10){// SGM independent!
+    sgm.calc_eq(veqtab); // => veqtab[ir] (!! veqtab here and in SGM class
+  }
+
+  else{ // all other models connected=>change!
+
+   for(ir=0; ir<=NRHO; ir++)
+   {
     double rho = rhomax*ir/NRHO;
 
     if (choice_model==1)   // GKT with high-density correction          
@@ -123,24 +134,28 @@ void calc_tables(char namepar[])
 
     }
 
+
     else   // Other models including original GKT and macroscopic IDM and OVM
     {
       high_denstab[ir]=0.;
       v0factab[ir] = 1.;     
 
     }
+   }
   }
 
   // ********************************************************************
   // Second loop: Calculate variance prefactor A(rho): theta=A(rho) V^2
   // ********************************************************************
 
-  if(test_timestep) cout << "in calc_tables: Second  loop" << endl;
+  cout << "in calc_tables: Second  loop GKT-A(rho)" << endl;
+  if(choice_model==10){cout<<"SGM: do nothing"<<endl;}
+
 
 
      // const A
 
-  if      ((choice_A == 0) || (choice_A==1)) { 
+  else if      ((choice_A == 0) || (choice_A==1)) { 
     for(ir=0; ir<=NRHO; ir++)  sqrtAtab  [ir] = sqrt(A0);
     Arhomax = A0;      //A(rhomax); needed in velocity eq of GKT formula
   }
@@ -187,10 +202,10 @@ void calc_tables(char namepar[])
   // Third rho loop: Calculation of equil.  values (with v0 from .inp!)
   // **********************************************************
 
-  if(test_timestep) cout << "in calc_tables: Equilibrium velocity" << endl;
+  if(choice_model==10){cout<<"SGM: Do nothing in third loop"<<endl;}
 
 
-  if ((choice_model==0) ||   // original GKT
+  else if ((choice_model==0) ||   // original GKT
       (choice_model==1) ||   // GKT with high-density corr
       (choice_model==6))     // GKT with resignatione effects
   {
@@ -267,8 +282,9 @@ void calc_tables(char namepar[])
         veqtab[ir] = mac3phases.ve_rho(rho);
       }
   }
+
   
-  else error(" sorry, choice_model<0 or neq 21,50,51 or >10 not implemented");
+  else error(" equil.cc: sorry, choice_model<0 or neq 21,50,51 or >10 not implemented");
 
   if (test_timestep) {
     for( ir=0; ir<=NRHO; ir++)
@@ -295,7 +311,7 @@ void calc_tables(char namepar[])
   cout << "calc_tables: Qmax="<<Qmax<<" rhoQmax="<<rhoQmax<<endl;
 
   /* *********************************************************
-   Fifth rho loop: Calculation of  the inverse of the Qe(rho)
+   Forth rho loop: Calculation of  the inverse of the Qe(rho)
    and ve(rho) relations:
    tables rho_freetab[iQ] = rho^-1(Qe) if Q<=Qmax
           rho_freetab[iQ] = rhoQmax    if Q>Qmax
@@ -354,7 +370,7 @@ void calc_tables(char namepar[])
   //if(test_timestep){
   if(true) {
 
-    cout << "calc_tables: "<<endl<<endl;
+    cout << "calc_tables after 4th loop: "<<endl<<endl;
 
     for (int iv=0; iv<=10; iv++) {
     cout << " v="<<v0*iv/NRHO
@@ -362,13 +378,13 @@ void calc_tables(char namepar[])
     }
 
 
-    /*    for (int iQ=0; iQ<=NRHO; iQ++) {
-    cout << " Q="<<Qtabmax*iQ/NRHO
+    for (int iQ=0; iQ<=NRHO; iQ++) {
+      cout << " Q="<<Qtabmax*iQ/NRHO
          << " rho_freetab[iQ]="<<rho_freetab[iQ]
          << " rho_congtab[iQ]="<<rho_congtab[iQ]
          << endl;
     }
-    */
+    
   }
 
 

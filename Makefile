@@ -13,7 +13,7 @@ BINDIR=~/bin
 
 # LIBDIR=.
 
-OBJECTS=master.cc ${LIBDIR}/InOut.o Mac3phases.o FPE.o FPE_innov.o VMM.o 
+OBJECTS=master.cc ${LIBDIR}/InOut.o Mac3phases.o FPE.o FPE_innov.o VMM.o SGM.o 
 
 # beliebige .o Files sollen aus den jeweiligen .cc Files erzeugt werden:
 .cc.o:

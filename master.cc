@@ -120,6 +120,10 @@ if(choice_model==21){
   vmm=VMM(dx,xmax,1./rhomax, choice_method);
   vmm.get_modelparams(projName);
 }
+if(choice_model==10){
+  sgm=SGM(dx,xmax,1./rhomax, choice_method);
+  sgm.get_modelparams(projName);
+}
 
  
 // Calculate tables of equilibrium velocity and flow, and of

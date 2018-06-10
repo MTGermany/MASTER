@@ -7,6 +7,7 @@
 #include "FPE.h"
 #include "FPE_innov.h"
 #include "VMM.h"
+#include "SGM.h"
 #include "Mac3phases.h"
 
 //********************************************************************
@@ -269,6 +270,7 @@ KKLparams kkl = KKLparams();
 FPE fpe = FPE(); 
 FPE_innov fpe_innov = FPE_innov();
 VMM vmm = VMM();
+SGM sgm = SGM();
 Mac3phases mac3phases=Mac3phases();
 
 /*******************************************************************/
