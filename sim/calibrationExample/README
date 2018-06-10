@@ -1,9 +1,0 @@
-generate sim result with several param combinations by calling
-
-makeVariations_T_tau.sh
-
-then generate objective function landscape with respect to the
-reference simulations (parameters defined fixed in source code
-../src_MASTER_kalib/MASTER_kalib.cpp
-
-by kalib.run

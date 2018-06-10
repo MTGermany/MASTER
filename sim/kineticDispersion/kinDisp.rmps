@@ -1,5 +1,0 @@
-%x	Lrmp
-%12000	400  % start incident position
-%12400	600  % end incident position
-%13000	100  % virtual ramp (quick hack to get quicker obstacle removing
-

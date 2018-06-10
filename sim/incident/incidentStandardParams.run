@@ -1,5 +1,0 @@
-if master incidentStandardParams; 
- then echo "successfully simulated";
- else echo "sim failed"; exit -1; 
-fi;
-incidentStandardParams.plot

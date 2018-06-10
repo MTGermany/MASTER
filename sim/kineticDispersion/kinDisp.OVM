@@ -1,8 +1,0 @@
-%Additional parameters for macroscopic version of the OVM of Bando et al.
-%v_opt = V0_b( tanh(c1_b) + tanh( c0_b*(1/rho)-c1_b) )
-7.91	   V0_b in m/s
-0.16  	   c0_b
-1.57        c1_b
-
-
-

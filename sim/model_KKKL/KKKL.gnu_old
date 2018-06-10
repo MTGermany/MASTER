@@ -1,9 +1,0 @@
-
-# KKKL
-
-
-set term post eps enhanced color solid  "Times-Roman" 25
-set out "./KKKL.1.eps"
-
-set view 50,60
-splot "KKKL.dat" u 1:2:3 w l 2

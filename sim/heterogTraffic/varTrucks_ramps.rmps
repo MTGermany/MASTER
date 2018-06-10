@@ -1,8 +1,0 @@
-%Center Pos of ramp    merging length  near loop           on/off   in file
--150                  200              D1  (0m)   -L/2      off      .rmp1
-1150                  200              D2  (1050m)+L/2      on       .rmp2
-1450                  200              D3  (1550m)-L/2      off      .rmp3
-2200                  200              D3a (2000m)+L/2      on       .rmp4
-6400                  800              D7  (6400m)-L/2      off      .rmp5
-6700                  800              D8  (6700m)+L/2      on       .rmp6
-

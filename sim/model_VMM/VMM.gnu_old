@@ -1,9 +1,0 @@
-
-# VMM
-
-
-set term post eps enhanced color solid  "Times-Roman" 25
-set out "./VMM.rho3d.eps"
-
-set view 50,60
-splot "VMM.dat" u 1:2:3 w l 2

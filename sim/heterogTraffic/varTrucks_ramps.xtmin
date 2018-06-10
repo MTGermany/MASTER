@@ -1,5 +1,0 @@
-% need start with x<0 because jam propagates beyond upstream loop
-% -> unknown reservoir!
-%
--2000        xmin(m)
-0         tmin(s)
