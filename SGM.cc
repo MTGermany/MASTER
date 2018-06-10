@@ -99,7 +99,7 @@ void SGM::calc_rhs(bool downwind_diff,
 
     double Ve = intp(veqtab, NRHO+1, rho[i],0,rhomax); 
     double Qe=rho[i]*Ve;
-    double P=-c0*Q[i+ishift];
+    double P=-c0*Q[i];
 
 
     // output

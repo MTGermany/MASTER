@@ -166,7 +166,7 @@ double times_r[NBC], rhoBC_r[NBC], QBC_r[NBC], vBC_r[NBC];
 
 // ranges for debugging info if test_timestep is on
 
-int    show          = false;
+bool show=false;
 int it_show_min,it_show_max;
 int ix_show_min,ix_show_max;
  
@@ -281,7 +281,7 @@ void   add_rmp (double S1[], double S2[],  double rho[], double Q[],
               double x_rmp, double dx_rmp, double Q_rmp, int gauss);
 
 
-void   advance_dt (int choice_method,
+void   advance_dt (int it, int choice_method,
 		double       u1[], double       u2[],
                 const double F1[], const double F2[],
                 const double S1[], const double S2[],
@@ -290,7 +290,7 @@ void   advance_dt (int choice_method,
                 double    u1right, double    u2right,
                 double dt, 
                 double D1[], double D2[], 
-                int show);
+                bool show);
 
 void   calc_eq_GKT(double rho, double vw, double A, double &veq);
 
@@ -303,7 +303,7 @@ void   calc_rhs (int choice_model, bool downwind_diff,
               double rho[],double Q[],
               double F1[], double F2[],
               double S1[], double S2[],
-              int show_calc_rhs);
+              bool show_calc_rhs);
 
 // only test for isolated GKT calculation for exporting code
 
@@ -311,7 +311,7 @@ void   calc_rhsGKT (int choice_model, bool downwind_diff,
               double rho[],double Q[],
               double F1[], double F2[],
               double S1[], double S2[],
-              int show_calc_rhs);
+              bool show_calc_rhs);
 
 double  cont_rmpflow(double flow_emp,double flow_sond1, double flow_crit, 
 		     double dens_sond, double *stor_ptr);
@@ -351,6 +351,15 @@ void   get_T_xtdependence (char namepar[], double Tr_inp,
 
 void   initialize(double rho[], double Q[]);
 
+void Godunov (double       u1[], double       u2[],  
+	      const double F1[], const double F2[],
+	      const double S1[], const double S2[],
+	      int choice_BC,
+	      double     u1left, double     u2left, 
+	      double    u1right, double    u2right, 
+	      int it, double dt,
+	      bool show);
+
 void McCormack (  double       u1[], double       u2[],
                 const double F1[], const double F2[],
                 const double S1[], const double S2[],
@@ -359,7 +368,7 @@ void McCormack (  double       u1[], double       u2[],
                 double    u1right, double    u2right,
                 double dt,
                 double D1[], double D2[],
-                int    show_McCormack);
+                bool show_McCormack);
 
 void   shift_in_x (double antic_factor, 
                 const double v[],  const double f[], double fshifted[]);
@@ -368,7 +377,7 @@ void   shift_in_x (double antic_factor,
 void shift_in_x_mca (const double rho_t[], 
                      const double f[], double fshifted[]);
 
-void show_advance(const double u1start[], const double u2start[],
+void show_advance(int it, const double u1start[], const double u2start[],
                   const double u1step[], const double u2step[], 
                   const double F1[], const double F2[], 
                   const double S1[], const double S2[]); 
@@ -383,7 +392,7 @@ void Upwind (   double       u1[], double       u2[],
                 double    u1right, double    u2right,
                 double dt,
                 double D1[], double D2[],
-                int    show);
+                bool show);
 
 void  write_array (char* fname, int & n_array, 
       double array[]);

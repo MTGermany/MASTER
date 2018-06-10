@@ -22,7 +22,7 @@ void McCormack (double       u1[], double       u2[],
                 double  u1right, double    u2right,
                 double  dt, 
                 double  D1[], double D2[],
-                int     show_McCormack)
+                bool show_McCormack)
 
   /* One integration step (time interval dt) of the equation
                   _________________________________________
@@ -94,7 +94,7 @@ void McCormack (double       u1[], double       u2[],
 
   if (show_McCormack) {
     printf("\nMcCormack: Prediktor\n"); 
-    show_advance(u1, u2, u1pred, u2pred, F1, F2, S1, S2);
+    show_advance(it, u1, u2, u1pred, u2pred, F1, F2, S1, S2);
   }
 
   // Calculate rhs. for the predicted values with upwind differences 
@@ -137,7 +137,7 @@ void McCormack (double       u1[], double       u2[],
 
   if (show_McCormack) {
     printf("\nMcCormack: Nach Korrektor\n"); 
-    show_advance(u1pred,u2pred,u1,u2,
+    show_advance(it,u1pred,u2pred,u1,u2,
                  F1,F2,S1,S2);
   }
  
@@ -156,7 +156,7 @@ void Upwind (
                 double    u1right, double    u2right, 
                 double dt,
                 double D1[], double D2[],
-                int    show)
+                bool show)
 
   /*
   The upwind scheme for updating the fields uk is (omitting k)
@@ -213,18 +213,84 @@ void Upwind (
   if (show) 
   {
     printf("\n Upwind: \n"); 
-    show_advance(u1start,u2start,u1,u2,
+    show_advance(it,u1start,u2start,u1,u2,
                  F1,F2,S1,S2);
   }
 
 }
 
+void Godunov (double       u1[], double       u2[],  
+	      const double F1[], const double F2[],
+	      const double S1[], const double S2[],
+	      int choice_BC,
+	      double     u1left, double     u2left, 
+	      double    u1right, double    u2right, 
+	      int it, double dt,
+	      bool show)
+
+  /*
+  Godunov scheme for updating the fields u (omitting the time index k)
+  prelim only for model 10 (SGM)
+
+    ---------------------------------------------------
+    (u[i])_new = u[i] - dt (F[i] - F[i-1])/dx + dt*S[i] DeltaQ/DeltaRho>=0
+    (u[i])_new = u[i] - dt (F[i+1] - F[i])/dx + dt*S[i] DeltaQ/DeltaRho<0
+    ---------------------------------------------------
+
+  consistency order: 1 for smooth data, 1/2 for shocks (LeVeque)
+  Stability criteria:
+    (i)   The eigenvalues lambda of the functional matrix 
+          d(F1,F2) / d(u1,u2) must all be positive
+    (ii)  Convective CFL conditions |lambda_max| dt/dx < 1
+    (iii) no diffusion => no Diffusive CFL condition Dmax dt/(2dx^2) < 1 
+  Terminology and variables explained in the head of "McCormack".
+  */
+
+{
+  const double durch_dx = 1./dx;
+  int    nx    = (int)(xmax* durch_dx);
+
+  double u1start[NXMAX+1],  u2start[NXMAX+1];
+  if (show) cprhoQ(u1,u2,u1start,u2start);
+
+  bool upwind[NXMAX+1];
+  for (int i=1; i<=nx-1; i++){
+    upwind[i]=( (u2[i+1]-u2[i-1])*(u1[i+1]-u1[i-1]) >=0);
+    if(false){
+      //if(upwind[i]==false){
+      cout <<" t="<<it*dt<<" x="<<i*dx<<" upwind=false"<<endl;
+    }
+  }
+  for (int i=1; i<=nx-1; i++){
+    if(upwind[i]){
+      u1[i] = u1[i] + dt * (S1[i] - (F1[i]-F1[i-1]) *durch_dx );
+      u2[i] = u2[i] + dt * (S2[i] - (F2[i]-F2[i-1]) *durch_dx );
+    }
+    else{
+      u1[i] = u1[i] + dt * (S1[i] - (F1[i]-F1[i-1]) *durch_dx );
+      u2[i] = u2[i] + dt * (S2[i] - (F2[i]-F2[i-1]) *durch_dx );
+    }
+
+  }
+
+
+
+  boundary_vals(u1,u2,nx,choice_BC, u1left, u2left, u1right, u2right);
+
+  if (show) 
+  {
+    printf("\n Godunov: \n"); 
+    show_advance(it,u1start,u2start,u1,u2,
+                 F1,F2,S1,S2);
+  }
+
+}
 
 //*******************************************************
 
 
 
-void show_advance(const double u1start[], const double u2start[],
+void show_advance(int it, const double u1start[], const double u2start[],
                   const double u1step[], const double u2step[], 
                   const double F1[], const double F2[], 
                   const double S1[], const double S2[])
@@ -233,14 +299,15 @@ void show_advance(const double u1start[], const double u2start[],
     // uses always left differences for first derivatives 
 
   {
+    int    nx    = (int)(xmax/dx);
 
-    int i;
-
+    int ix_show_min=0;
+    int ix_show_max=nx/5;
     printf("\nbefore advance by dt: \n");
 
     printf("ix\t1000rho\t Q\t  v \n");
 
-    for (i=ix_show_min;i<=ix_show_max;i++)
+    for (int i=ix_show_min;i<ix_show_max;i++)
       printf("%i\t %.3f\t %.4f\t  %.4f \n",
               i, 
               1000.*u1start[i], 
@@ -251,7 +318,7 @@ void show_advance(const double u1start[], const double u2start[],
 
     printf("\n ix\t   1000*rho\t   Q\t  v \n");
 
-    for (i=ix_show_min;i<=ix_show_max;i++)
+    for (int i=ix_show_min;i<ix_show_max;i++)
       printf("%i\t %.3f\t   %.4f\t  %.4f \n",
               i, 
               1000.*u1step[i], 
@@ -261,7 +328,7 @@ void show_advance(const double u1start[], const double u2start[],
     printf("\n ix\t -1000*d_x F1  -d_x F2    S1   S2   dt*sum2  \n");
 
     int imindiff = (ix_show_min==0) ? 1 : ix_show_min;
-    for (i=imindiff;i<=ix_show_max;i++)
+    for (int i=imindiff;i<=ix_show_max;i++)
       printf("%i   %.9f  %.5f  %.5f  %.5f    %.5f  \n",
       i, 
       - 1000.*(F1[i]-F1[i-1])/dx, 

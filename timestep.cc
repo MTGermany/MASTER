@@ -42,7 +42,7 @@ void timestep ( int it, double rho[], double Q[], double a[])
 
   // determine, if step should be shown for debugging (sic!)
 
-  show=(it<2);
+  show=(it<20);
   if(show){
     cout <<endl<<endl
 	 << "in timestep debugging: it= " << it << endl;
@@ -290,7 +290,7 @@ void timestep ( int it, double rho[], double Q[], double a[])
 
   calc_rhs (choice_model, true, rho,Q,F1,F2,S1,S2,show);
  
-  advance_dt(choice_method,rho,Q,F1,F2,S1,S2, 
+  advance_dt(it,choice_method,rho,Q,F1,F2,S1,S2, 
             choice_BC,rholeft,Qleft,rhoright,Qright,
             dt,D1field,D2field,show);
 
@@ -318,7 +318,7 @@ void cprhoQ (const double rho[], const double Q[],
 
 
 
-void advance_dt (int choice_method,
+void advance_dt (int it, int choice_method,
 		double       u1[], double       u2[],
                 const double F1[], const double F2[],
                 const double S1[], const double S2[],
@@ -327,11 +327,15 @@ void advance_dt (int choice_method,
                 double    u1right, double    u2right,
                 double dt, 
                 double D1[], double D2[], 
-                int show)
+		bool show)
 
 
   { 
-    if( choice_method == 0) 
+    if(choice_model==10){ // overrules .inp file for SGM
+      Godunov (u1, u2, F1, F2, S1, S2, 
+	       choice_BC, u1left, u2left, u1right, u2right, it, dt, show);
+    }
+    else if( choice_method == 0) 
     McCormack ( u1, u2, F1, F2, S1, S2, 
          choice_BC, u1left, u2left, u1right, u2right, dt, D1, D2, show);
     else if(choice_method == 1) 

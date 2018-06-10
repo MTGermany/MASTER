@@ -12,7 +12,7 @@ void calc_rhs (int choice_model, bool downwind_diff,
               double rho[],double Q[],  
               double F1[], double F2[],  
               double S1[], double S2[], 
-              int show_calc_rhs)
+              bool show_calc_rhs)
 
   /* Calculates the right-hand sides (fluxes Fi and sources Si)
      of macroscopic traffic models of the form
