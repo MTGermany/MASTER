@@ -51,6 +51,7 @@ void FPE::get_modelparams(const char projName[]){
     inout.getvar(fp,&B);    // second Kramers-Moyal coeffixient (2*Diff)
     fclose(fp);
   }
+  else{cerr<<" file "<<fName<<" does not exist"<<endl; exit(-1);}
 }
 
 

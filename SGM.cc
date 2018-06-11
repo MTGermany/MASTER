@@ -52,6 +52,7 @@ void SGM::get_modelparams(const char projName[]){
     inout.getvar(fp,&tau); 
     fclose(fp);
   }
+  else{cerr<<" file "<<fName<<" does not exist"<<endl; exit(-1);}
 
   calc_eq(veqtab); // !! veqtab local and global parallel!
   if(false){
@@ -65,7 +66,7 @@ void SGM::calc_eq(double veqtab[]){
   for(int ir=0; ir<=NRHO; ir++){
     double rhorel=((double)ir)/NRHO;
     veqtab[ir]=v0*(1/(1+exp((rhorel-rhocrel)/drhorel))-3.72e-6);
-    cout<<"SGM: ir="<<ir<<" rhorel="<<rhorel<<"  veqtab="<< veqtab[ir]<<endl;
+    //cout<<"SGM: ir="<<ir<<" rhorel="<<rhorel<<"  veqtab="<< veqtab[ir]<<endl;
   }
 }
 

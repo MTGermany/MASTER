@@ -94,6 +94,8 @@ void FPE_innov::get_modelparams(const char projName[]){
     inout.getvar(fp,&c1);  //if !=0, then multiplicative Diffusion D=c1*erw(x)
     fclose(fp);
   }
+  else{cerr<<" file "<<fName<<" does not exist"<<endl; exit(-1);}
+
   if(false){
     cout <<"FPE get_modelparams: A="<<A<<" D="<<D<<" nx="<<nx
 	 <<" lambda="<<lambda

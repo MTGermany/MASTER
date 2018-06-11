@@ -52,6 +52,8 @@ void VMM::get_modelparams(const char projName[]){
     inout.getvar(fp,&drhorel); 
     fclose(fp);
   }
+  else{cerr<<" file "<<fName<<" does not exist"<<endl; exit(-1);}
+
   if(false){
     cout <<"FPE get_modelparams: v0="<<v0<<" drhorel="<<drhorel
          <<endl;

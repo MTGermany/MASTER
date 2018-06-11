@@ -54,24 +54,28 @@ void Mac3phases::get_modelparams(const char fName[]){
   FILE *fp;
   InOut inout;
   fp=fopen(fName,"r");
-  filecheck(fp,fName);
+  if(fp){
+    filecheck(fp,fName);
 
-  inout.getvar(fp,&choice_variant); // {original OVfun, triang. OV, 3phase}
+    inout.getvar(fp,&choice_variant); // {original OVfun, triang. OV, 3phase}
 
-  inout.getvar(fp,&rhomax); // vehicle length 
-  inout.getvar(fp,&s0);   // addtl. introduced distance (m) for veq=0
-  inout.getvar(fp,&v0); // martin mar08: Now always des. vel
-  inout.getvar(fp,&tau);
-  inout.getvar(fp,&Tmin);
-  inout.getvar(fp,&Tmax);
-  inout.getvar(fp,&beta); // prefactor of v*dv/s(rho) term
+    inout.getvar(fp,&rhomax); // vehicle length 
+    inout.getvar(fp,&s0);   // addtl. introduced distance (m) for veq=0
+    inout.getvar(fp,&v0); // martin mar08: Now always des. vel
+    inout.getvar(fp,&tau);
+    inout.getvar(fp,&Tmin);
+    inout.getvar(fp,&Tmax);
+    inout.getvar(fp,&beta); // prefactor of v*dv/s(rho) term
 
-  inout.getvar(fp,&A0);  
-  inout.getvar(fp,&dA);  
-  inout.getvar(fp,&posA_rel);  
-  inout.getvar(fp,&widthA_rel);
+    inout.getvar(fp,&A0);  
+    inout.getvar(fp,&dA);  
+    inout.getvar(fp,&posA_rel);  
+    inout.getvar(fp,&widthA_rel);
  
-  fclose(fp);
+    fclose(fp);
+  }
+  else{cerr<<" file "<<fName<<" does not exist"<<endl; exit(-1);}
+
   Arhomax = A0 + 2.*dA; 
   lveh=1./rhomax;
 
