@@ -249,10 +249,9 @@ void calc_tables(char namepar[])
       veqtab[0] = ovm.V0 * ( tanh(ovm.c1)+1 );
       for( ir=1; ir<=NRHO; ir++){
         double rho=rhomax*ir/NRHO;
-        veqtab[ir] = ovm.V0 * (
-          tanh(ovm.c1) 
-        + tanh(ovm.c0*((1/rho)-(1/rhomax))-ovm.c1) 
-                            );
+        veqtab[ir] = ovm.V0
+	  * (tanh(ovm.c1) + tanh(ovm.c0*(1/rho-1/rhomax)-ovm.c1))
+	  / (tanh(ovm.c1)+1);
         if (veqtab[ir] <= 0.0) veqtab[ir] = 0.0;
       }
     }
