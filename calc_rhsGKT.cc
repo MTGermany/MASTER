@@ -117,7 +117,7 @@ void shift_in_xLWR (double antic_factor,
 
   //   Calculates, from the input array "f" representing f(x),
   //   an array "fshifted" representing f(x+dx_shift) 
-  //   The shifted distance is ds=antic_factor * grid size dx 
+  //   The shifted distance is ds=antic_factor *  dx 
   //   The extrapolation to the right depends on the BC:
   // !! new BC in function "boundary_vals" may imply changes here!
 
