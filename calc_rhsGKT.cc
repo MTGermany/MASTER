@@ -1,5 +1,8 @@
 
 
+// ACHTUNG calc_rhsGKT,add_rmpGKT  taken only
+// if testIsolatedGKT==true in calc_rhs;
+// otherwise code in calc_rhs taken !!! (but add_rmpGKT always from here)
 
 //########################################
 //  function add_rmpGKT                                                */
@@ -187,7 +190,7 @@ void calc_rhsGKT (int choice_model, bool downwind_diff,
               double rho[],double Q[],  
               double F1[], double F2[],  
               double S1[], double S2[], 
-              int debug)
+              bool debug)
 
   /* Calculates the right-hand sides (fluxes Fi and sources Si)
      of macroscopic traffic models of the form
@@ -236,11 +239,9 @@ void calc_rhsGKT (int choice_model, bool downwind_diff,
   double rhodelta[NXMAX+1];                  // nonlocal density
   double vdelta[NXMAX+1];                    // nonlocal velocity
 
-  double tiny_value=1.e-6;
-  double rangeBoltzmann=3;
   
   // #########################################################
-  // Standard GKT model
+  // Standard GKT model with new reliable highspeed corr tau0->tau>tau0
   // d_t rho = - d_x Q + ramp source terms,
   // d_t Q   = - d_x (rho A V^2) + (rho V_0 - Q)/tau0
   //           - v0 rho' T^2 A(rho) Q^2 B(dvrel) 
@@ -251,7 +252,8 @@ void calc_rhsGKT (int choice_model, bool downwind_diff,
   // B(dvrel) = gas-kinetic "Boltzmann" interaction prefactor [B(0)=1]
   // dvrel    = velocity difference (V - V') in units of the sqrt of the
   //            velocity variance A V^2
-  // ACHTUNG Berechnung bei calc_rhs, nicht diese,  wird genommen !!!!
+  // ACHTUNG only if testIsolatedGKT==true in calc_rhs; otherwise
+  // code in calc_rhs taken !!!
   // #############################################################
 
   if  ( (choice_model!=0) && (choice_model!=9)){
@@ -265,9 +267,9 @@ void calc_rhsGKT (int choice_model, bool downwind_diff,
 
     for (i=0; i<=nx; i++)
     {
-      if (rho[i]<tiny_value)        rho[i] = tiny_value;
-      if (rho[i]>rhomax-tiny_value) rho[i] = rhomax-tiny_value; //MT 2016
-      if (Q[i]<rho[i]*tiny_value)   Q[i]   =rho[i]*tiny_value;
+      if (rho[i]<TINY_VALUE)        rho[i] = TINY_VALUE;
+      if (rho[i]>rhomax-TINY_VALUE) rho[i] = rhomax-TINY_VALUE; //MT 2016
+      if (Q[i]<rho[i]*TINY_VALUE)   Q[i]   =rho[i]*TINY_VALUE;
       v[i] = Q[i]/rho[i];
     }
 
@@ -282,25 +284,48 @@ void calc_rhsGKT (int choice_model, bool downwind_diff,
     for (i=0; i<=nx; i++)
     {
       double sqrtA     = intp(sqrtAtab, NRHO+1, rho[i], 0, rhomax);
-      double denom     = 1-rhodelta[i]/rhomax;
+      double denom     = 1-rhodelta[i]/rhomax; // rhodelta<rhomax-TINY_VALUE
       double dvrel     = (v[i]-vdelta[i]) / (sqrtA * sqrt2 * v[i]  );   
-      //double dvrel     = (v[i]-vdelta[i]) / (sqrtA * v[i]  );   
-      //double dvrel     = 0;
-      double bolzm_fact= ( (dvrel>-rangeBoltzmann) && (dvrel<rangeBoltzmann) )
-                       ? intp( Btab, NDV+1, dvrel, -rangeBoltzmann, rangeBoltzmann)
+      double bolzm_fact= ( (dvrel>DVMIN) && (dvrel<DVMAX) )
+                       ? intp( Btab, NDV+1, dvrel, DVMIN, DVMAX)
                        : (dvrel>0) ? 2.*SQR(dvrel) : 0.; 
+
       // calculate F1, F2 and S2; S1 calculated in ramp-source section
       // below
 
       F1[i] = Q[i];
-      F2[i] = rho[i] * v[i]*v[i] * (1.+ sqrtA*sqrtA);
-      //F2[i] = rho[i] * SQR(v[i]) * (1.);   // !!!
-      double S2free = (rho[i]*v0_loc[i] - Q[i]) / tau0;
-      double S2brake= v0_loc[i] * rhodelta[i]
-                      * SQR( Tr_loc[i]*sqrtA*Q[i]) * bolzm_fact
-	              / (SQR(denom)*tau0*Arhomax);
-      S2[i] = S2free  - S2brake;
-      S2[i] *= denom;  //MT 2016 counter vanishing relax. times (9.45)
+      F2[i] = rho[i] * SQR(v[i]) * (1.+ SQR(sqrtA)); // hat wenig Einfluss
+
+      double taumin=4*dt;
+      double tau=max(taumin,tau0*SQR(denom));
+      double tau1=max(taumin/SQR(denom),tau0);
+
+
+     
+
+      if(false){
+	double S2free = (rho[i]*v0_loc[i] - Q[i]) / tau0;
+	double S2brake= v0_loc[i] * rho[i]  //martin08
+	  * SQR( Tr_loc[i]*sqrtA*rhodelta[i]*v[i]) * bolzm_fact //martin08
+	  / (SQR(denom)*tau0*Arhomax);
+	S2[i] = (S2free  - S2brake)*SQR(denom)*tau0/tau;
+       }
+
+      else{
+        double S2free = (rho[i]*v0_loc[i] - Q[i]) / tau1;
+	double S2brake= v0_loc[i] * rho[i]  //martin08
+	  * SQR( Tr_loc[i]*sqrtA*rhodelta[i]*v[i]) * bolzm_fact //martin08
+	  / (SQR(denom)*tau1*Arhomax);
+	S2[i] = S2free  - S2brake;
+      }
+
+      //double S2brake= v0_loc[i] * rhodelta[i] //orig
+
+      //S2[i] *= denom; //MT 2016 counter tsu->0 (9.45)
+      //S2[i] *= SQR(denom);
+      //S2[i] *= SQR(denom)*tau0/tau;
+      if(i==nx/2){cout<<" rho[i]="<<rho[i]<<" denom="<<denom<<" tau1="<<tau1<<" tau0/tau="<<tau0/tau<<" SQR(denom)*tau0/tau="<<SQR(denom)*tau0/tau<<endl;}
+      
     }
 
  
@@ -332,9 +357,9 @@ void calc_rhsGKT (int choice_model, bool downwind_diff,
 
     for (i=0; i<=nx; i++)
     {
-      if (rho[i]<tiny_value)        rho[i] = tiny_value;
-      if (rho[i]>rhomax-tiny_value) rho[i] = rhomax-tiny_value;
-      if (Q[i]<rho[i]*tiny_value)   Q[i]   =rho[i]*tiny_value;
+      if (rho[i]<TINY_VALUE)        rho[i] = TINY_VALUE;
+      if (rho[i]>rhomax-TINY_VALUE) rho[i] = rhomax-TINY_VALUE;
+      if (Q[i]<rho[i]*TINY_VALUE)   Q[i]   =rho[i]*TINY_VALUE;
       v[i] = Q[i]/rho[i];
     }
 

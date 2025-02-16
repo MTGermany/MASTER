@@ -226,12 +226,11 @@ void Mac3phases::calc_rhs (
 
   // Check input (rho>0, Q>=0) and calculate V
 
-  double tinyVal=1.e-6;  // greater than TINY_VALUE!
   //bool stopped=false;
   
   for (int i=0; i<=nx; i++){
-     if (rho[i]<tinyVal)        rho[i] = tinyVal;
-     if (Q[i]<rho[i]*tinyVal)   Q[i]   =rho[i]*tinyVal;
+     if (rho[i]<TINY_VALUE)        rho[i] = TINY_VALUE;
+     if (Q[i]<rho[i]*TINY_VALUE)   Q[i]   =rho[i]*TINY_VALUE;
      if (rho[i]>1/(lveh)){// !!: Keine Aenderung von rho, nur evtl. Q!
  
        //cout <<"Mac3phases.calc_rhs: stopped! x="<<i*dx<<" it="<<counter<<endl;
@@ -254,7 +253,7 @@ void Mac3phases::calc_rhs (
     for (int i=0; i<=nx; i++){
        //double A     = intp(Atab, NRHO+1, rho[i], 0, rhomax);
        double A     = 0;
-       double seff=max(2./(rho[i]+rhodelta[i])-lveh-s0, tinyVal);
+       double seff=max(2./(rho[i]+rhodelta[i])-lveh-s0, TINY_VALUE);
 
        F1[i] = Q[i];
        F2[i] = rho[i] * v[i]*v[i] * (1.+ A);

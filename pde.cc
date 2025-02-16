@@ -187,6 +187,13 @@ void Upwind (
   // !! set "choice_model==0" as first condition if flow-violating
   // high-dens corr for GKT is used (implemented in timestep)
 
+  /* =====================================================
+     MT 2025-02: If funddia u2e=Qe is known, one could overcome relax 
+     instabilities of the S term by replacing the dt term of the rhs by
+     (u2e-u2)*exp(-dt/taurelax)-dt * (F2[i]-F2[i-1]) *durch_dx 
+     with taurelax=(u2e-u2)/S2
+     =======================================================*/
+
   if ( ((choice_model==0)||(choice_model==1))||(choice_model==3) || (choice_model==7)
        || (choice_model==8) || (choice_model==9)){
     for (i=1; i<=nx-1; i++){

@@ -7,6 +7,7 @@
 /*  function calc_rhs                                               */
 /********************************************************************/
 
+// extra function calc_rhsGKT only used if testIsolatedGKT
 
 void calc_rhs (int choice_model, bool downwind_diff,
               double rho[],double Q[],  
@@ -64,7 +65,7 @@ void calc_rhs (int choice_model, bool downwind_diff,
 
   // ######################################################################
 
-  bool testIsolatedGKT=false;
+  bool testIsolatedGKT=true;
 
   if  ( testIsolatedGKT&&(!trucks.varTruck) && (choice_model==0) ){
     calc_rhsGKT (choice_model, downwind_diff, rho,Q,F1,F2,S1,S2, show_calc_rhs);
@@ -103,13 +104,14 @@ void calc_rhs (int choice_model, bool downwind_diff,
 
       F1[i] = Q[i];
       F2[i] = rho[i] * SQR(v[i]) * (1.+ SQR(sqrtA)); // hat wenig Einfluss
-      //F2[i] = rho[i] * SQR(v[i]) * (1.);   //martin08
+
       double S2free = (rho[i]*v0_loc[i] - Q[i]) / tau0;
+
       //double S2brake= v0_loc[i] * rhodelta[i] //orig
       double S2brake= v0_loc[i] * rho[i]  //martin08
 	//* SQR( Tr_loc[i]*sqrtA*Q[i]) * bolzm_fact //orig
-                      * SQR( Tr_loc[i]*sqrtA*rhodelta[i]*v[i]) * bolzm_fact //martin08
-                      / (SQR(denom)*tau0*Arhomax);
+	* SQR( Tr_loc[i]*sqrtA*rhodelta[i]*v[i]) * bolzm_fact //martin08
+	/ (SQR(denom)*tau0*Arhomax);
       S2[i] = S2free  - S2brake;
     }
   }

@@ -1,5 +1,4 @@
 
-double tiny_value=1.e-6;
 
 //#######################################################
 // minsmooth and maxsmooth (needed for general FD of LWR model, choice_model=9)
@@ -221,7 +220,7 @@ void calc_tables(char namepar[])
       double rho           = rhomax*ir/NRHO;
       double veParabola=v0*(1.-rho/rhomax);
       double veTriang
-	=max(0.,minsmooth(v0, (1/max(rho,tiny_value)-1/rhomax)/Tr, 0.8*veParabola*A0));
+	=max(0.,minsmooth(v0, (1/max(rho,TINY_VALUE)-1/rhomax)/Tr, 0.8*veParabola*A0));
       veqtab[ir]=A0*veParabola+(1-A0)*veTriang;
     }
   }
