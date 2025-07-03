@@ -87,6 +87,7 @@ void shift_in_xGKT (double antic_factor,
     {
       double T_xt = Tr_loc[i]*trucks.TrTruckCorr;
       dx_shift  = antic_factor * ( 1/rhomax + T_xt *v[i] );
+      //dx_shift  = antic_factor *T_xt *v0_loc[i];
       idx_shift = (int)(dx_shift/dx);
       rest   = dx_shift/dx - idx_shift;
 
@@ -229,6 +230,8 @@ void calc_rhsGKT (int choice_model, bool downwind_diff,
 
 {
 
+  cout <<" in calc_rhsGKT, choice_model="<<choice_model<<endl;
+  
   if(false){
     cout<<" in calc_rhsGKT: downwind_diff="<<((downwind_diff) ? "true" : "false")<<endl;
   }
@@ -296,35 +299,27 @@ void calc_rhsGKT (int choice_model, bool downwind_diff,
       F1[i] = Q[i];
       F2[i] = rho[i] * SQR(v[i]) * (1.+ SQR(sqrtA)); // hat wenig Einfluss
 
-      double taumin=4*dt;
-      double tau=max(taumin,tau0*SQR(denom));
-      double tau1=max(taumin/SQR(denom),tau0);
+      double ve=max(0.0001*v0_loc[i], intp(veqtab, NRHO+1, rho[i], 0, rhomax));
+      //double tau1=tau0
+      double tau1=max(tau0,2*dt*(1+2*v0_loc[i]/ve));
+
 
 
      
 
-      if(false){
-	double S2free = (rho[i]*v0_loc[i] - Q[i]) / tau0;
-	double S2brake= v0_loc[i] * rho[i]  //martin08
-	  * SQR( Tr_loc[i]*sqrtA*rhodelta[i]*v[i]) * bolzm_fact //martin08
-	  / (SQR(denom)*tau0*Arhomax);
-	S2[i] = (S2free  - S2brake)*SQR(denom)*tau0/tau;
-       }
-
-      else{
-        double S2free = (rho[i]*v0_loc[i] - Q[i]) / tau1;
-	double S2brake= v0_loc[i] * rho[i]  //martin08
+      double S2free = (rho[i]*v0_loc[i] - Q[i]) / tau1;
+      double S2brake= v0_loc[i] * rho[i]  //martin08
 	  * SQR( Tr_loc[i]*sqrtA*rhodelta[i]*v[i]) * bolzm_fact //martin08
 	  / (SQR(denom)*tau1*Arhomax);
-	S2[i] = S2free  - S2brake;
-      }
+      S2[i] = S2free  - S2brake;
+
 
       //double S2brake= v0_loc[i] * rhodelta[i] //orig
 
       //S2[i] *= denom; //MT 2016 counter tsu->0 (9.45)
       //S2[i] *= SQR(denom);
       //S2[i] *= SQR(denom)*tau0/tau;
-      if(i==nx/2){cout<<" rho[i]="<<rho[i]<<" denom="<<denom<<" tau1="<<tau1<<" tau0/tau="<<tau0/tau<<" SQR(denom)*tau0/tau="<<SQR(denom)*tau0/tau<<endl;}
+      if(i==nx/2){cout<<" rho[i]="<<rho[i]<<" v[i]="<<v[i]<<" ve="<<ve<<" denom="<<denom<<" tau1="<<tau1<<" tau1/tau0="<<tau1/tau0<<endl;}
       
     }
 
