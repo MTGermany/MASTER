@@ -1,8 +1,8 @@
 
 
-// ACHTUNG calc_rhsGKT,add_rmpGKT  taken only
+// WATCH OUT: calc_rhsGKT, add_rmpGKT  taken only
 // if testIsolatedGKT==true in calc_rhs;
-// otherwise code in calc_rhs taken !!! (but add_rmpGKT always from here)
+// otherwise calc_rhs and add_rmp in calc_rhs.cc is taken 
 
 //########################################
 //  function add_rmpGKT                                                */
@@ -87,7 +87,6 @@ void shift_in_xGKT (double antic_factor,
     {
       double T_xt = Tr_loc[i]*trucks.TrTruckCorr;
       dx_shift  = antic_factor * ( 1/rhomax + T_xt *v[i] );
-      //dx_shift  = antic_factor *T_xt *v0_loc[i];
       idx_shift = (int)(dx_shift/dx);
       rest   = dx_shift/dx - idx_shift;
 
@@ -217,13 +216,24 @@ void calc_rhsGKT (int choice_model, bool downwind_diff,
          parameters T (=Tr) or v0, given by the (global) arrays
          Tr_loc and v0_loc
 
-     Differences from the inline function in calc_rhs.cc 
-     (which is used if calc_rhs.testIsolatedGKT=false): 
+     Differences from the inline function calc_rhs in calc_rhs.cc 
+     (which is used if calc_rhs.testIsolatedGKT=false): (MT 2025)
+     All changes marked by MT 20xx
 
-       - the density is not only bounded from below (rho>0) 
-         but also from above (rho<rhomax) (marked as all the rest by //MT 2016)
-       - counter vanishing relax. times [book, (9.45)] by multiplying the 
-         flow relaxation term S2 by (1-rho/rhomax)
+     Tested: Below rhomax/2 no visible differences, 
+     particularly not in the istability region (MT 2025-09)
+
+       - [the density is not only bounded from below (rho>0) 
+         but also from above (rho<rhomax)]
+
+       - [shift_in_x(.) is the same as shift_in_xGKT]
+
+       - (1) change of the relaxation time tau0->tau1 [book ed. 2, (10.30)]
+         to avoid high-dens local instabilities
+
+       - (2) Some small high-density diffusion directly in the conservative
+         terms F1 and F2, D=Dmax*(1-ve/v0)^2, Dmax=10 m^2/s (very small)
+
  
    */
 
@@ -266,6 +276,10 @@ void calc_rhsGKT (int choice_model, bool downwind_diff,
   }
   if(choice_model==0){
 
+
+    double Dplusmax=10;  // for later high-dens diffusion MT 2025
+    const double durch_dx = 1./dx; // for later high-dens diffusion MT 2025
+    
     // Check input (rho>0, Q>=0) and calculate V
 
     for (i=0; i<=nx; i++)
@@ -293,33 +307,52 @@ void calc_rhsGKT (int choice_model, bool downwind_diff,
                        ? intp( Btab, NDV+1, dvrel, DVMIN, DVMAX)
                        : (dvrel>0) ? 2.*SQR(dvrel) : 0.; 
 
+
+
       // calculate F1, F2 and S2; S1 calculated in ramp-source section
       // below
 
       F1[i] = Q[i];
       F2[i] = rho[i] * SQR(v[i]) * (1.+ SQR(sqrtA)); // hat wenig Einfluss
 
+      // change of the relaxation time to avoid high-dens local instabilities 
+      // MT 2025
+      
       double ve=max(0.0001*v0_loc[i], intp(veqtab, NRHO+1, rho[i], 0, rhomax));
-      //double tau1=tau0
-      double tau1=max(tau0,2*dt*(1+2*v0_loc[i]/ve));
+      //double tau1=tau0;
+      double tau1=max(tau0,2*dt*(1+2*v0_loc[i]/ve)); //MT 2025
 
 
 
      
 
-      double S2free = (rho[i]*v0_loc[i] - Q[i]) / tau1;
-      double S2brake= v0_loc[i] * rho[i]  //martin08
-	  * SQR( Tr_loc[i]*sqrtA*rhodelta[i]*v[i]) * bolzm_fact //martin08
-	  / (SQR(denom)*tau1*Arhomax);
+      double S2free = (rho[i]*v0_loc[i] - Q[i]) / tau1; // MT 2025 tau0->tau1
+      double S2brake=  rho[i]*v0_loc[i] // rhodelta better but not consistent
+	  * SQR( Tr_loc[i]*sqrtA*rhodelta[i]*v[i]) * bolzm_fact
+	  / (SQR(denom)*tau1*Arhomax);  // MT 2025 tau0->tau1
       S2[i] = S2free  - S2brake;
 
 
-      //double S2brake= v0_loc[i] * rhodelta[i] //orig
+    // include high-density diffusion directly onto F1 and F2 (MT 2025)
 
-      //S2[i] *= denom; //MT 2016 counter tsu->0 (9.45)
-      //S2[i] *= SQR(denom);
-      //S2[i] *= SQR(denom)*tau0/tau;
-      if(i==nx/2){cout<<" rho[i]="<<rho[i]<<" v[i]="<<v[i]<<" ve="<<ve<<" denom="<<denom<<" tau1="<<tau1<<" tau1/tau0="<<tau1/tau0<<endl;}
+      double D_corr      = Dplusmax * SQR(1-ve/v0);      // additl diffusion
+
+      if (downwind_diff){
+	 F1[i] += - D_corr * ( rho[i+1] - rho[i]) * durch_dx;
+         F2[i] += - D_corr * ( Q[i+1]   - Q[i]  ) * durch_dx;
+      }
+
+      else{
+	 F1[i] += - D_corr * ( rho[i] - rho[i-1]) * durch_dx;
+         F2[i] += - D_corr * ( Q[i]   - Q[i-1]  ) * durch_dx;
+      } 
+    
+
+
+      
+      if(i==nx/2){cout<<" rho[i]="<<rho[i]<<" v[i]="<<v[i]<<" ve="<<ve<<" denom="<<denom<<" tau1="<<tau1<<" tau1/tau0="<<tau1/tau0
+		      <<" downwind_diff="<<downwind_diff
+		      <<" D_corr="<<D_corr<<endl;}
       
     }
 
@@ -341,7 +374,7 @@ void calc_rhsGKT (int choice_model, bool downwind_diff,
       }
     }
 
-  }
+  }// end GKT calculation with new high-dens corr
 
   else if(choice_model==9){ // LWR mockup with parabolic FD (MT 2016)
     // flux term F2 of flow-conservative formulation = Q^2/rho (book (9.30))
@@ -362,13 +395,12 @@ void calc_rhsGKT (int choice_model, bool downwind_diff,
     
      shift_in_xLWR (antic_factor, rho,   rhodelta);
 
-    // calculate rhs of flow equation F1, F2 and S2
+    // LWR mockup choice_model==9: rhs of flow equation F1, F2 and S2
     // S1, S2inh calculated in ramp-source section below
 
     for (i=0; i<=nx; i++)
     {
       double ve=intp(veqtab, NRHO+1, rhodelta[i], 0, rhomax);
-      //double ve=v0_loc[i]*(1-rhodelta[i]/rhomax);
       ve=min(v0_loc[i], max(0., ve));
 
       F1[i] = Q[i];

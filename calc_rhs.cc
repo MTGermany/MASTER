@@ -1,6 +1,10 @@
 
+// WATCH OUT: calc_rhsGKT,add_rmpGKT from calc_rhsGKT.cc taken only
+// if testIsolatedGKT==true in calc_rhs;
+// otherwise calc_rhs and add_rmp from this file are taken
 
 
+bool testIsolatedGKT=true;
 
 
 /********************************************************************/
@@ -65,7 +69,6 @@ void calc_rhs (int choice_model, bool downwind_diff,
 
   // ######################################################################
 
-  bool testIsolatedGKT=true;
 
   if  ( testIsolatedGKT&&(!trucks.varTruck) && (choice_model==0) ){
     calc_rhsGKT (choice_model, downwind_diff, rho,Q,F1,F2,S1,S2, show_calc_rhs);
@@ -108,7 +111,7 @@ void calc_rhs (int choice_model, bool downwind_diff,
       double S2free = (rho[i]*v0_loc[i] - Q[i]) / tau0;
 
       //double S2brake= v0_loc[i] * rhodelta[i] //orig
-      double S2brake= v0_loc[i] * rho[i]  //martin08
+      double S2brake= v0_loc[i] * rho[i] 
 	//* SQR( Tr_loc[i]*sqrtA*Q[i]) * bolzm_fact //orig
 	* SQR( Tr_loc[i]*sqrtA*rhodelta[i]*v[i]) * bolzm_fact //martin08
 	/ (SQR(denom)*tau0*Arhomax);

@@ -57,11 +57,11 @@ Features:
 
 A mathematical description of the models as well as the basic concepts
 can be found in the book [Traffic Flow
-Dynamics](http://www.traffic-flow-dynamics.org) by Treiber/Kesting,
-particularly the Chapter 9 (second-order macroscopic models, and also
-Chapters 7 and 8 (general concepts and first-order macro models).
+Dynamics](http://www.traffic-flow-dynamics.org) by Treiber/Kesting, second edition,
+particularly the Chapter 10 (second-order macroscopic models, and also
+Chapters 8 and 9 (general concepts and first-order macro models).
 
-Documentation by example can be found in the [_sim_] directory 
+Documentation of the actual simulation projects can be found in the [_Demos_] section.
 
 
 ## Installation
@@ -76,8 +76,8 @@ make master
 which compiles the simulator and places an executable in *~/bin/*
 
 
-## Usage
---------
+## Running the program
+----------------------
 
 The simulations are organized in projects with several input and
 output files (everything is text-based.
@@ -90,13 +90,13 @@ in a command-line window.
 
 For example,
 ```bash
-master ramps/ramps
+master sim/ramps
 ```
 
-will run the project *ramps* in the *ramps/* directory. Notice that
+will run the project *sim/ramps* in the *sim/* directory. Notice that
 all output goes to the simulation directory, not the directory
-*master* is called (best to call *master* in the corresponding
-simulation directory)
+*master* is called from (best to call *master* in the corresponding
+simulation directory, though)
 
 
 
@@ -107,7 +107,23 @@ Demo projects are in the *sim/* directory, ordered by topic.
 
 Each project has a *.run* file which runs *master project*, and calls
 the *gnuplot* program to make some graphical representation of the
-results. If you do not want plotting, just call *master project*
+results. If you do not want plotting, just call *master project*.
+Each project has mandatory and optional files. Comment lines begin with a '%' or '#'.
+
+Let's assume that the project is called `proj`
+
+# Mandatory project files
+-------------------------
+
+- `proj.inp` Main control file. The example files are essentially self-explaing. Points to watch out for:
+
+ * The model parameters (first 7 data lines) are for the GKT and its variants. They are ignored and/or overridden by optional parameter files
+ if other macromodels are simulated. Also the GKT parameters are overridden as a function of following optional files:
+
+(i) `proj.Tr` or `proj.v0` override v0 and T by space-dependent values allowing to model flow-conservative bottlenecks
+
+(ii) The assumed relative speed variance A(rho) (squared variation coefficient) of the GKT model is a tanh-like function of the density rho. Its amplitude parameters A0=A(0) and dA=(A(rhomax)-A0)/2 are in the `.inp` file while its positional parameters pos_rel=0.27 (relative density of maximum increase) and drho=0.1 (relative width of the increase) have default values in the code but can be overridden by the optional .A file   
+
 
 
 ## References 
