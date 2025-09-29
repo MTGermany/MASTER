@@ -79,8 +79,9 @@ int input(char projName[] )
 
 
   fclose(fp);
-
-
+  cout<<"HIER"<<endl;
+  
+ 
   // **************************************************************
   // crude test of input 
   // (many other not tested combinations can lead to crash!)
@@ -373,7 +374,7 @@ int input(char projName[] )
 
   // **************************************************************
   // get ramp data 
-  // choice_rmp==0: no ramps; 1: 1 ramp; 2: several ramps
+  // choice_rmp==0: no ramps; 1: 1 ramp; 2: several ramps; 4 change_nLanes
   // choice_rmp==3: ramps with inflow control (data from <projName>.rmps_c)
   // **************************************************************
 
@@ -393,7 +394,7 @@ int input(char projName[] )
     }
 
 
-  if ((choice_rmp==2)||(choice_rmp==3))
+  if ((choice_rmp==2)||(choice_rmp==3)||(choice_rmp==4))
   {
       // n_rmps:            Number of ramps
       // x_rmps      []:    Positions of the ramps (centered)
@@ -416,11 +417,10 @@ int input(char projName[] )
      if (n_rmps > NRMPMAX) error ("number of ramps > NRMPMAX");
 
      // shifting positions to internally calculate with x in [0,xmax]
-     int  i_rmps=0;
-     for (i_rmps=0; i_rmps<= n_rmps; i_rmps++)  x_rmps[i_rmps]-=xmin;
+     for (int i_rmps=0; i_rmps<= n_rmps; i_rmps++)  x_rmps[i_rmps]-=xmin;
 
      // reading ramp flows
-     for (i_rmps=0; i_rmps<= n_rmps; i_rmps++)
+     for (int i_rmps=0; i_rmps<= n_rmps; i_rmps++)
      {
        sprintf(in_fname,"%s.rmp%i",projName,i_rmps+1);
        get_array(in_fname, n_jumps_rmps[i_rmps], 
@@ -432,14 +432,18 @@ int input(char projName[] )
        }
      }
 
-     // scaling ramp flows to internally used SI units   
+     // scaling ramp flows to internally used SI units
+     // (unless rmp flows stand for mock-up lane number changes)
 
-     int  i_time=0;
-     for(i_rmps=0; i_rmps<= n_rmps; i_rmps++)
-     {
-       for(i_time=0; i_time<= n_jumps_rmps[i_rmps]; i_time++) 
-          Q_rmps[i_rmps][i_time] /=3600.;
+     for(int i_rmps=0; i_rmps<= n_rmps; i_rmps++){
+       for(int i_time=0; i_time<= n_jumps_rmps[i_rmps]; i_time++){
+	 if(choice_rmp!=4){Q_rmps[i_rmps][i_time] /=3600.;}
+	 cout<<"i_rmps="<<i_rmps<<" i_time="<<i_time
+	     <<"Q_rmps[i_rmps][i_time]="<<Q_rmps[i_rmps][i_time]<<endl;
+       }
+       
      }
+
   }
 
 
@@ -458,8 +462,7 @@ int input(char projName[] )
      get_array(in_fname, n_rmps_c, x_rmps_c, dx_rmps_c, s1_rmps_c, max_flow);
      if (n_rmps_c > NRMPMAX) error ("number of ramps > NRMPMAX");
    
-     int  i_rmps=0;
-     for (i_rmps=0; i_rmps<= n_rmps_c; i_rmps++)
+     for (int i_rmps=0; i_rmps<= n_rmps_c; i_rmps++)
        {
        sprintf(in_fname,"%s.rmp_c%i",projName,i_rmps+1);
        get_array(in_fname, n_jumps_rmps_c[i_rmps], 
@@ -473,10 +476,9 @@ int input(char projName[] )
 
        }
     
-     int  i_time=0;
-     for(i_rmps=0; i_rmps<= n_rmps_c; i_rmps++)
+     for(int i_rmps=0; i_rmps<= n_rmps_c; i_rmps++)
      {
-       for(i_time=0; i_time<= n_jumps_rmps_c[i_rmps]; i_time++) 
+       for(int i_time=0; i_time<= n_jumps_rmps_c[i_rmps]; i_time++) 
           Q_rmps_c[i_rmps][i_time] /=3600.;
      }
   }
@@ -487,8 +489,8 @@ int input(char projName[] )
   // Interactive input for debugging if switch test_timestep on
   // **************************************************************
 
-  if(test_timestep)
-  {
+ cout<<"test_timestep="<<test_timestep<<endl;
+  if(test_timestep) {
     cout << "enter it_show_min,it_show_max,ix_show_min,ix_show_max" <<endl
          << "("
          << " it = 0 ... " << (int) (tmax/dt)
@@ -497,13 +499,23 @@ int input(char projName[] )
     cin  >> it_show_min >> it_show_max >> ix_show_min >> ix_show_max;
   };
 
-  if(true){
+  if(false){
     for (int i=0; i<=n_jumps_r; i++){
       cout <<"i="<<i<<" rhoBC_r[i]="<<rhoBC_r[i]<<endl;
     }
+    exit(0);
   }
 
-  return(0);
+  if(false){
+    for(int i_rmps=0; i_rmps<= n_rmps; i_rmps++){
+      for(int i_time=0; i_time<= n_jumps_rmps[i_rmps]; i_time++){
+	cout<<"in input: i_rmps="<<i_rmps<<" i_time="<<i_time
+	    <<" Q_rmps[i_rmps][i_time]="<<Q_rmps[i_rmps][i_time]<<endl;
+      }
+    }
+    //exit(0);
+  }
+  return 0;
 }
 
 // *************************************************************

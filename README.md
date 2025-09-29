@@ -115,9 +115,9 @@ Let's assume that the project is called `proj`
 # Mandatory project files
 -------------------------
 
-- `proj.inp` Main control file. The example files are essentially self-explaing. Points to watch out for:
+- `proj.inp` Main control file. The example files are essentially self-explaining. Points to watch out for:
 
- * The model parameters (first 7 data lines) are for the GKT and its variants. They are ignored and/or overridden by optional parameter files
+ * The model parameters (first 7 data lines) are for the GKT and its variants. They are ignored and/or overridden by optional parameemacs calter files
  if other macromodels are simulated. Also the GKT parameters are overridden as a function of following optional files:
 
 (i) `proj.Tr` or `proj.v0` override v0 and T by space-dependent values allowing to model flow-conservative bottlenecks

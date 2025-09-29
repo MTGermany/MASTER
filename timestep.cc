@@ -42,7 +42,8 @@ void timestep ( int it, double rho[], double Q[], double a[])
 
   // determine, if step should be shown for debugging (sic!)
 
-  show=(it<20);
+  //show=(it<20);
+  show=false;
   if(show){
     cout <<endl<<endl
 	 << "in timestep debugging: it= " << it << endl;
@@ -112,7 +113,7 @@ void timestep ( int it, double rho[], double Q[], double a[])
     flow_rmp = intpextp (times_rmp, Q_rmp, n_jumps_rmp+1, it*dt);
   }
 
-  else if((choice_rmp==2)||(choice_rmp==3))      // several ramps
+  else if((choice_rmp==2)||(choice_rmp==3)||(choice_rmp==4))  // several ramps
   {
     int i_rmp;
     for (i_rmp=0; i_rmp<=n_rmps; i_rmp++)

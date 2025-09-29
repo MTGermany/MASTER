@@ -244,35 +244,74 @@ void shift_in_x_mca (const double rho_t[],
   //  and vice versa
 
 {
-  double dx_shift,rest;
-  int    i, idx_shift, nx=(int)(xmax/dx);
+  int nx=(int)(xmax/dx);
 
-  if(antic_factor > 0)
-  {
-    for(i=0; i<=nx;i++)
-    {
-      dx_shift  = 1./rho_t[i];          // the only line different 
-      //dx_shift  = 0.5/rho_t[i];          // the only line different 
-                                         // from shift_in_x
-      idx_shift = (int)(dx_shift/dx);
-      rest   = dx_shift/dx - idx_shift;
+  if(antic_factor > 0){
+    for(int i=0; i<=nx;i++){
+      double dx_shift= 1./rho_t[i];      // only this differs from shift_in_x
+      //double dx_shift  = antic_factor * dx;
+      int idx_shift = (int)(dx_shift/dx);
+      double rest   = dx_shift/dx - idx_shift;
 
       if((i+idx_shift+1)<=nx)
         fshifted[i]    = (1-rest)*f[i+idx_shift] + rest*f[i+idx_shift+1];
 
-      // extrapolation depending on the BC
-      else 
-      { 
+      // extrapolation depending on the BC: 0=periodic,1=free,2=Neumann, 3=Dirichlet
+
+      else{ 
         if      (choice_BC==0) fshifted[i] 
             = (1-rest)*f[i+idx_shift-nx+1] + rest*f[i+idx_shift-nx+2];
         else if ((choice_BC==1) || (choice_BC==4)) fshifted[i] 
             = f[nx] + (dx_shift/dx - nx+i) * (f[nx]-f[nx-1]);
-        else  fshifted[i] 
-            = f[nx];  // const extrapolation in case of fixed or Neumann BC
+        else fshifted[i] 
+	    = f[nx];  // const extrapolation in case of Neumann  or fixed BC
 
       }
     }
   }
-  else for(i=0; i<=nx;i++) fshifted[i]=f[i];
-
+  else for(int i=0; i<=nx;i++) fshifted[i]=f[i];
 }
+
+//#################################################################
+//  function shift_in_xLWR  (only choice_model==9)
+//#################################################################
+
+
+void shift_in_xLWR (double antic_factor, 
+     const double f[], double fshifted[])
+
+  //   Calculates, from the input array "f" representing f(x),
+  //   an array "fshifted" representing f(x+dx_shift) 
+  //   The shifted distance is ds=antic_factor *  dx 
+  //   The extrapolation to the right depends on the BC:
+  // !! new BC in function "boundary_vals" may imply changes here!
+
+{
+  int nx=(int)(xmax/dx);
+
+  if(antic_factor > 0){
+    for(int i=0; i<=nx;i++){
+      double dx_shift  = antic_factor * dx;
+      int idx_shift = (int)(dx_shift/dx);
+      double rest   = dx_shift/dx - idx_shift;
+
+      if((i+idx_shift+1)<=nx)
+        fshifted[i]    = (1-rest)*f[i+idx_shift] + rest*f[i+idx_shift+1];
+
+      // extrapolation depending on the BC: 0=periodic,1=free,2=Neumann, 3=Dirichlet
+
+      else{ 
+        if      (choice_BC==0) fshifted[i] 
+            = (1-rest)*f[i+idx_shift-nx+1] + rest*f[i+idx_shift-nx+2];
+        else if ((choice_BC==1) || (choice_BC==4)) fshifted[i] 
+            = f[nx] + (dx_shift/dx - nx+i) * (f[nx]-f[nx-1]);
+        else fshifted[i] 
+	    = f[nx];  // const extrapolation in case of Neumann  or fixed BC
+
+      }
+    }
+  }
+  else for(int i=0; i<=nx;i++) fshifted[i]=f[i];
+}
+
+

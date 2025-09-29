@@ -519,6 +519,45 @@ void calc_rhs (int choice_model, bool downwind_diff,
   }
   //End FPE
 
+
+    else if(choice_model==9){ // LWR mockup with parabolic FD (MT 2016)
+    // flux term F2 of flow-conservative formulation = Q^2/rho (book (9.30))
+    // source term S2 of flow-conservative formulation = (rho*Ve-Q)/tau0 + S2inh
+
+
+    // Check input (rho>0, Q>=0) and calculate V
+
+    for (i=0; i<=nx; i++)
+    {
+      if (rho[i]<TINY_VALUE)        rho[i] = TINY_VALUE;
+      if (rho[i]>rhomax-TINY_VALUE) rho[i] = rhomax-TINY_VALUE;
+      if (Q[i]<rho[i]*TINY_VALUE)   Q[i]   =rho[i]*TINY_VALUE;
+      v[i] = Q[i]/rho[i];
+    }
+
+    // calculate advanced v field (just to realize downwards dependence for num stability)
+    
+     shift_in_xLWR (antic_factor, rho,   rhodelta);
+
+    // LWR mockup choice_model==9: rhs of flow equation F1, F2 and S2
+    // S1, S2inh calculated in ramp-source section below
+
+    for (i=0; i<=nx; i++)
+    {
+      double ve=intp(veqtab, NRHO+1, rhodelta[i], 0, rhomax);
+      ve=min(v0_loc[i], max(0., ve));
+
+      F1[i] = Q[i];
+      F2[i] = rho[i] * SQR(v[i]);
+      S2[i] = (rho[i]*ve-Q[i])/tau0;
+    }
+
+  }
+
+
+  // end LWR mockup (choice_model==9)
+
+
 //################ InnovationFokker Planck equation ###################
 
   // Inno-FPE: dP(x,t)/dt = lambda*P(x,t) * (x-erw(x)) + d^2/dx^2 (D P)
@@ -583,38 +622,49 @@ void calc_rhs (int choice_model, bool downwind_diff,
   // calculate sources from on- and off-ramps for all models above 
   //################################################################
 
-    // only Lee-KK with Gaussian ramp flow density!!
-  int gauss = (choice_model==2) ? true : false; 
 
+  // only Lee-KK with Gaussian ramp flow density!!
+  int rmpType=(choice_model==2) ? 1 : (choice_rmp==4) ? 2 : 0;
 
+  // initialize for nearly all models apart Black scholes (=5)
+  // and FPokker-Planck equations (50,51)
+  
   if((choice_model!=5)&&(choice_model<50)){
     for(i=0;i<=nx; i++) S1[i]=0;
   }
 
+  // single normal ramp
+  
   if(choice_rmp==1)
   {
-    add_rmp (S1, S2, rho,Q, x_rmp,dx_rmp,flow_rmp, gauss );
+    add_rmp (S1, S2, rho,Q, x_rmp,dx_rmp,flow_rmp, rmpType );
          // flow_rmp interpolated from the array Q_rmp[] in timestep 
   }
 
-  if((choice_rmp==2)||(choice_rmp==3))
-  {
-    int i_rmp;
-    for (i_rmp=0; i_rmp<=n_rmps; i_rmp++)
+  // several ramps (choice 2) or several ramps with flow control (choice 3)
+  // or several ramps mocking up lane number changes
+  
+  if((choice_rmp==2)||(choice_rmp==3)||(choice_rmp==4)){
+    for (int i_rmp=0; i_rmp<=n_rmps; i_rmp++)
       add_rmp (S1, S2, rho, Q, x_rmps[i_rmp],dx_rmps[i_rmp],
-               flow_rmps[i_rmp], gauss );
-         // flow_rmps[] interpolated from the array Q_rmps[][] in timestep 
-    //cout <<"add_rmp: i_rmp="<<i_rmp<<" flow_rmps[i_rmp]="<<flow_rmps[i_rmp]<<endl;
+               flow_rmps[i_rmp], rmpType);
+    
   }
-  if(choice_rmp==3)
-    {
-    int i_rmp;
-    for (i_rmp=0; i_rmp<=n_rmps_c; i_rmp++)
+
+  // add control input flow_rmps_c in case of flow control
+  
+  if(choice_rmp==3){
+    for (int i_rmp=0; i_rmp<=n_rmps_c; i_rmp++)
       add_rmp (S1, S2, rho, Q, x_rmps_c[i_rmp],dx_rmps_c[i_rmp],
-               flow_rmps_c[i_rmp], gauss );  
+               flow_rmps_c[i_rmp], rmpType);  
     }
   
- 
+  // lane changes mockup by ramp flow
+  // ex: 1-2-1 => flow_rmps[0]=-0.5 (upstream), flow_rmps[1]=+1 (downstream)
+  // ex: 2-1-2 => flow_rmps[0]=+1 (upstream), flow_rmps[1]=-1/2 (downstream)
+  // ex: 3-2-1 => flow_rmps[0]=+1/2 (upstream), flow_rmps[1]=+1 (downstream)
+  
+
 }
 
 /*********************************************************************/
@@ -629,59 +679,73 @@ void calc_rhs (int choice_model, bool downwind_diff,
 /********************************************************************/
 
 void add_rmp (double S1[], double S2[], double rho[], double Q[],
-              double x_rmp, double dx_rmp, double flow_rmp, int gauss)
+              double x_rmp, d
+	      ouble dx_rmp, double flow_rmp, int rmpType)
 
   /* adds the effects of one ramp to the source terms S1 and S2
      The ramp is at position x_rmp with merging length dx_rmp; its flow
      flow_rmp is >0 for an on-ramp, <0 for an off-ramp.
      The velocity of the merging or leaving cars is the local velocity
      of the main road.    
+     rmpType={0=constant flow density, 1=Gaussian, 2=laneNumberChanges}
      If gauss is on, the ramp flow distribution is Gaussian centered at x_rmp
      with sqrt(variance)=L; otherwise it is constant in [xrmp-L/2,xrmp+L/2]
+
+  // lane changes mockup by ramp flow (rmpType==2)
+  // ex: 1-2-1 => flow_rmps[0]=-0.5 (upstream), flow_rmps[1]=+1 (downstream)
+  // ex: 2-1-2 => flow_rmps[0]=+1 (upstream), flow_rmps[1]=-1/2 (downstream)
+  // ex: 3-2-1 => flow_rmps[0]=+1/2 (upstream), flow_rmps[1]=+1 (downstream)
+
+
      */
 
-    { 
-      if (!gauss)    // constant ramp flow density
-      {
-        int    nx_rmp  = (int)(dx_rmp/dx);  // (actual length = nx_rmp*dx)
-        int    ix_min  = (int)((x_rmp-0.5*dx_rmp)/dx);
-        int    ix_max  = ix_min + nx_rmp; 
-        int    ix,nx   =(int)(xmax/dx);
+{
+  
+  //cout<<"in add_rmp: x_rmp="<<x_rmp<<" dx_rmp="<<dx_rmp
+  //   <<" flow_rmp="<<flow_rmp<<" rmpType="<<rmpType<<endl;
+  
+  int    nx_rmp  = (int)(dx_rmp/dx);  // (actual length = nx_rmp*dx)
+  int    ix_min  = (int)((x_rmp-0.5*dx_rmp)/dx);
+  int    ix_max  = ix_min + nx_rmp; 
+  int    nx   =(int)(xmax/dx);
+
+  if(rmpType==1){ //Gaussian flow density
+    nx_rmp  = (int)(6.*dx_rmp/dx);        //  +- 3 sigma
+    ix_min  = (int)((x_rmp-3*dx_rmp)/dx);
+    ix_max  = ix_min + nx_rmp; 
+    nx   =(int)(xmax/dx);
+  }
    
-        if( ix_min<1)  ix_min=1;
-        if( ix_max>nx-1) ix_max=nx-1;
+  if( ix_min<1)  ix_min=1;
+  if( ix_max>nx-1) ix_max=nx-1;
 
-        for(ix=ix_min+1;ix<=ix_max; ix++) 
-        {
-          double source = flow_rmp/(nx_rmp*dx);
-          S1[ix] += source;
-          S2[ix] += source*Q[ix]/rho[ix];    // merging with velocity of main road 
-        }
-      }
-      else        // Gaussian ramp density
-      {
-        int    nx_rmp  = (int)(6.*dx_rmp/dx);          //  +- 3 sigma
-        int    ix_min  = (int)((x_rmp-3*dx_rmp)/dx);
-        int    ix_max  = ix_min + nx_rmp; 
-        int    ix,nx   =(int)(xmax/dx);
+  for(int ix=ix_min+1;ix<=ix_max; ix++){
+    double source = flow_rmp/(nx_rmp*dx); // default rmpType==0
 
-        if( ix_min<1)  ix_min=1;
-        if( ix_max>nx-1) ix_max=nx-1;
-
-        double prefac = 1./( dx_rmp*sqrt(2*PI));
-        for(ix=ix_min+1;ix<=ix_max; ix++) 
-        {
-          double xdev = ix*dx - x_rmp;
-          double gauss_dist = prefac*exp(-0.5*SQR(xdev/dx_rmp));
-          double source = flow_rmp * gauss_dist;
-          S1[ix] += source;
-          S2[ix] += source*Q[ix]/rho[ix];    // merging with velocity of main road 
-	  //cout <<"prefac="<<prefac<<" exp="<<exp(-0.5*SQR(xdev/dx_rmp))
-          //     <<" x="<<ix*dx<<" source="<<source<<endl;
-        }
-
+    if(rmpType==1){// Gaussian flow density
+      double prefac = 1./( dx_rmp*sqrt(2*PI));
+      double xdev = ix*dx - x_rmp;
+      double gauss_dist = prefac*exp(-0.5*SQR(xdev/dx_rmp));
+      source = flow_rmp * gauss_dist;
+    }
+    
+    if(rmpType==2){ // mockup for lane number changes
+      double delta_lnLanes=-log(flow_rmp+1);
+      source= -Q[ix]*delta_lnLanes/(dx*nx_rmp);
+      if(false){
+        cout<<"add_rmp: time="<<it*dt<<" ix="<<ix
+	    <<" delta_lnLanes="<<delta_lnLanes
+	    <<" 3600*Q[ix]="<<3600*Q[ix]
+	    <<" 3600*source="<<3600*source<<endl;
       }
     }
+
+    // add source term
+    
+    S1[ix] += source;
+    S2[ix] += source*Q[ix]/rho[ix];    // merging with velocity of main road 
+  }
+} // add_rmp
 
 
 
