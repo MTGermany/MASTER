@@ -65,7 +65,7 @@ void   boundary_vals(double field[], int nx,
     field[nx] = field[nx-1];
   }
 
-  else   // choice_BC=8,9,... handled by following boundary_vals() function
+  else{;}   // choice_BC=8,9,... handled by following boundary_vals() function
 
     //error("boundary_vals: choice_BC>7 or <0 not implemented here");
 }

@@ -679,8 +679,7 @@ void calc_rhs (int choice_model, bool downwind_diff,
 /********************************************************************/
 
 void add_rmp (double S1[], double S2[], double rho[], double Q[],
-              double x_rmp, d
-	      ouble dx_rmp, double flow_rmp, int rmpType)
+              double x_rmp, double dx_rmp, double flow_rmp, int rmpType)
 
   /* adds the effects of one ramp to the source terms S1 and S2
      The ramp is at position x_rmp with merging length dx_rmp; its flow
