@@ -6,9 +6,13 @@
 void   boundary_vals(double field[], int nx, 
                      int choice_BC, double left, double right)
 
-  // Defines the two boundary points field[0], field[nx] of "field" 
-  // !! if new BC are defined, the function "shift_in_x","shift_in_x_mca"
-  //  must be modified accordingly and so must "timestep", "input".
+// Defines the two boundary points field[0], field[nx] of "field" 
+// !! if new BC are defined, the function "shift_in_x","shift_in_x_mca"
+//  must be modified accordingly and so must "timestep", "input".
+
+// flow notice: whether steady-state flow or flow from files is assumed
+// is determined in timestep.cc possibly setting Qright, Qleft to the
+// steady-state values
  
 {
   if (choice_BC==0)      /* periodic BC */
@@ -32,7 +36,7 @@ void   boundary_vals(double field[], int nx,
   }
 
   else if(choice_BC==3)   // Dirichlet BC both at inflow and outflow,
-                          // Q in equil.
+                          // Q in equil. (this is selected in timestep.cc)
   {
     field[0]  = left;
     field[nx] = right;
@@ -63,7 +67,7 @@ void   boundary_vals(double field[], int nx,
 
   else   // choice_BC=8,9,... handled by following boundary_vals() function
 
-    error("boundary_vals: choice_BC>9 or <0 not implemented here");
+    //error("boundary_vals: choice_BC>7 or <0 not implemented here");
 }
 
 /********************************************************************/
@@ -108,6 +112,7 @@ void   boundary_vals(double rho[], double Q[], int nx,
   // 9          equilFree_rho(Q), Dir_Q      equilCong_rho(Q), Dir_Q
   // 10         Dir_rho,  Dir_Q              equil_rho(v), equil_Q(v)
 
+  // Distinctions between 8-10 in timestep.cc
 
   else if( (choice_BC==8)  // dynamic BC using rho and Q from .BC file
 	|| (choice_BC==9) // dynamic BC using Q from.BC file,
